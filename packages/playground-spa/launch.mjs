@@ -2,19 +2,19 @@
 // the environment so every config file Vite evaluates can see it, then spawns the dev command.
 import { spawn } from "node:child_process";
 
-import { resolvePreview } from "vite-plugin-preview-hub";
+import { resolvePreview } from "vite-plugin-dev-server-gateway";
 
 const resolved = await resolvePreview();
 
 const env = {
   ...process.env,
-  PREVIEW_HUB_BASE: resolved.base,
-  PREVIEW_HUB_PORT: String(resolved.port),
+  PREVIEW_GATEWAY_BASE: resolved.base,
+  PREVIEW_GATEWAY_PORT: String(resolved.port),
   PREVIEW_NAME: resolved.name,
 };
 
 console.log(
-  `[preview-hub] launching "${resolved.name}" on port ${resolved.port} at ${resolved.base}/`,
+  `[dev-server-gateway] launching "${resolved.name}" on port ${resolved.port} at ${resolved.base}/`,
 );
 
 const child = spawn("pnpm", ["exec", "vite"], { env, stdio: "inherit" });

@@ -92,9 +92,9 @@ importers:
       react-router:
         specifier: ^7.0.0
         version: 7.17.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      vite-plugin-preview-hub:
+      vite-plugin-dev-server-gateway:
         specifier: workspace:*
-        version: link:../vite-plugin-preview-hub
+        version: link:../vite-plugin-dev-server-gateway
     devDependencies:
       '@react-router/dev':
         specifier: ^7.0.0
@@ -117,15 +117,19 @@ importers:
 
   packages/playground-spa:
     dependencies:
-      vite-plugin-preview-hub:
+      vite-plugin-dev-server-gateway:
         specifier: workspace:*
-        version: link:../vite-plugin-preview-hub
+        version: link:../vite-plugin-dev-server-gateway
     devDependencies:
       vite:
         specifier: catalog:dev
         version: 8.0.16(@types/node@25.9.1)(@vitejs/devtools@0.3.3)(jiti@2.7.0)
 
-  packages/vite-plugin-preview-hub:
+  packages/vite-plugin-dev-server-gateway:
+    dependencies:
+      gunshi:
+        specifier: 0.34.0
+        version: 0.34.0
     devDependencies:
       '@arethetypeswrong/core':
         specifier: catalog:dev
@@ -1851,6 +1855,10 @@ packages:
 
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
+
+  gunshi@0.34.0:
+    resolution: {integrity: sha512-X2iHMotAKK143WNWyatb1y+sBoIqIeXNNc9ul5oMVqyxTpN/8LVJ+YWQZ8wT35r8RzMFO3nUi+Fnt7c4QzE34g==}
+    engines: {node: '>= 22'}
 
   h3@1.15.11:
     resolution: {integrity: sha512-L3THSe2MPeBwgIZVSH5zLdBBU90TOxarvhK9d04IDY2AmVS8j2Jz2LIWtwsGOU3lu2I5jCN7FNvVfY2+XyF+mg==}
@@ -4184,6 +4192,8 @@ snapshots:
       slash: 3.0.0
 
   graceful-fs@4.2.11: {}
+
+  gunshi@0.34.0: {}
 
   h3@1.15.11:
     dependencies:

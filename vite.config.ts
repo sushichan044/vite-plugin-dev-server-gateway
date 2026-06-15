@@ -53,15 +53,17 @@ export default defineConfig({
     projects: [
       {
         test: {
-          name: "vite-plugin-preview-hub",
-          include: ["packages/vite-plugin-preview-hub/**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+          name: "vite-plugin-dev-server-gateway",
+          include: [
+            "packages/vite-plugin-dev-server-gateway/**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
+          ],
         },
       },
       {
         test: {
           name: "e2e",
           include: ["packages/e2e/**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
-          // Spawning real Vite dev servers (hub + instances) is slower than unit tests.
+          // Spawning real Vite dev servers (gateway + instances) is slower than unit tests.
           testTimeout: 60_000,
           hookTimeout: 60_000,
         },

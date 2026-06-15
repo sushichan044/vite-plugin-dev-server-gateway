@@ -1,0 +1,77 @@
+{
+  "name": "vite-plugin-dev-server-gateway",
+  "version": "0.0.0",
+  "description": "Fan out to many running Vite dev servers behind one origin, with a live index of every preview.",
+  "keywords": [
+    "dev-server",
+    "devtools",
+    "preview",
+    "proxy",
+    "vite",
+    "vite-plugin"
+  ],
+  "homepage": "https://github.com/sushichan044/vite-plugin-dev-server-gateway#readme",
+  "bugs": {
+    "url": "https://github.com/sushichan044/vite-plugin-dev-server-gateway/issues"
+  },
+  "license": "",
+  "author": {
+    "name": "sushichan044",
+    "url": "https://github.com/sushichan044"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sushichan044/vite-plugin-dev-server-gateway.git",
+    "directory": "packages/vite-plugin-dev-server-gateway"
+  },
+  "funding": "https://github.com/sponsors/sushichan044",
+  "bin": {
+    "vite-plugin-dev-server-gateway": "./dist/cli.mjs"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    },
+    "./devtools-client": {
+      "types": "./dist/devtools-client.d.mts",
+      "import": "./dist/devtools-client.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "prepublishOnly": "vp pack",
+    "build": "vp pack"
+  },
+  "dependencies": {
+    "gunshi": "0.34.0"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/core": "catalog:dev",
+    "@types/node": "catalog:dev",
+    "@typescript/native-preview": "catalog:dev",
+    "@virtual-live-lab/tsconfig": "catalog:dev",
+    "@vitejs/devtools-kit": "0.3.3",
+    "publint": "catalog:dev",
+    "typescript": "catalog:dev",
+    "unplugin-unused": "catalog:dev",
+    "vite": "catalog:dev",
+    "vite-plus": "catalog:dev"
+  },
+  "peerDependencies": {
+    "vite": "^7.0.0 || ^8.0.0"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

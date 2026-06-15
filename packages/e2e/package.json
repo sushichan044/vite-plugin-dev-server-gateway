@@ -1,5 +1,5 @@
 {
-  "name": "@e2e/preview-hub",
+  "name": "@e2e/dev-server-gateway",
   "version": "0.0.0",
   "private": true,
   "type": "module",

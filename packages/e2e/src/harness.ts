@@ -33,7 +33,7 @@ function isPortFree(port: number): Promise<boolean> {
   });
 }
 
-/** A free port within the dispatch range, so the hub's port-range gate accepts the registration. */
+/** A free port within the dispatch range, so the gateway's port-range gate accepts the registration. */
 export async function freePortInRange(after = PORT_RANGE[0]): Promise<number> {
   for (let port = after; port <= PORT_RANGE[1]; port++) {
     // eslint-disable-next-line no-await-in-loop -- sequential probe, first free port wins
@@ -91,14 +91,14 @@ export async function waitForHttp(
 function baseEnv(): NodeJS.ProcessEnv {
   const env = { ...process.env };
   delete env["PREVIEW_NAME"];
-  delete env["PREVIEW_HUB_BASE"];
-  delete env["PREVIEW_HUB_PORT"];
-  delete env["PREVIEW_HUB_ORIGIN"];
-  delete env["PREVIEW_HUB_BRANCH"];
+  delete env["PREVIEW_GATEWAY_BASE"];
+  delete env["PREVIEW_GATEWAY_PORT"];
+  delete env["PREVIEW_GATEWAY_ORIGIN"];
+  delete env["PREVIEW_GATEWAY_BRANCH"];
   return env;
 }
 
-export async function startHub(): Promise<ServerHandle> {
+export async function startGateway(): Promise<ServerHandle> {
   const port = await freeEphemeralPort();
   const child = spawn(VITE_BIN, ["--host", "127.0.0.1", "--port", String(port), "--strictPort"], {
     cwd: PLAYGROUND_DIR,
@@ -106,21 +106,21 @@ export async function startHub(): Promise<ServerHandle> {
     stdio: "ignore",
   });
   const origin = `http://127.0.0.1:${port}`;
-  await waitForHttp(`${origin}/__preview-hub/health`);
+  await waitForHttp(`${origin}/__dev-server-gateway/health`);
   return { child, origin, port };
 }
 
 export async function startInstance(
   name: string,
-  hubOrigin: string,
+  gatewayOrigin: string,
   after?: number,
 ): Promise<ServerHandle> {
   const port = await freePortInRange(after);
   const env = {
     ...baseEnv(),
-    PREVIEW_HUB_BASE: `/preview/${name}`,
-    PREVIEW_HUB_ORIGIN: hubOrigin,
-    PREVIEW_HUB_PORT: String(port),
+    PREVIEW_GATEWAY_BASE: `/preview/${name}`,
+    PREVIEW_GATEWAY_ORIGIN: gatewayOrigin,
+    PREVIEW_GATEWAY_PORT: String(port),
     PREVIEW_NAME: name,
   };
   const child = spawn(VITE_BIN, ["--host", "127.0.0.1"], {

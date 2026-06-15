@@ -18,7 +18,7 @@ Today this is not possible with `json-render`:
 
 Net effect: any plugin whose panel is essentially "a list of links" (preview servers, route lists, generated artifacts, deploy URLs, etc.) has to drop `json-render` and fall back to a `custom-render`/`iframe` dock with a hand-written, separately-bundled client just to get a clickable "open in new tab" link.
 
-Concrete use case: [`vite-plugin-preview-hub`](https://github.com/sushichan044/vite-plugin-preview-hub) shows a live list of running Vite preview dev servers in a DevTools tab and wants each row to open its preview in a new tab. The list itself is a perfect fit for `json-render`'s `DataTable`, but the new-tab requirement forces a `custom-render` client script instead.
+Concrete use case: [`vite-plugin-dev-server-gateway`](https://github.com/sushichan044/vite-plugin-dev-server-gateway) shows a live list of running Vite preview dev servers in a DevTools tab and wants each row to open its preview in a new tab. The list itself is a perfect fit for `json-render`'s `DataTable`, but the new-tab requirement forces a `custom-render` client script instead.
 
 ## Suggested solution
 
@@ -54,7 +54,7 @@ The reserved-client-action approach (2) is the smallest change and keeps the ser
 
 ## Alternative
 
-- Use a `custom-render` dock with a bundled client script that renders the list and calls `window.open` / `<a target="_blank">`. This works (it's what `vite-plugin-preview-hub` does now) but gives up the zero-effort native styling, requires shipping a client entry, and re-implements table/badge styling by hand to match the built-in look.
+- Use a `custom-render` dock with a bundled client script that renders the list and calls `window.open` / `<a target="_blank">`. This works (it's what `vite-plugin-dev-server-gateway` does now) but gives up the zero-effort native styling, requires shipping a client entry, and re-implements table/badge styling by hand to match the built-in look.
 - Render the URL as `Text` with `variant: 'code'` so the user can copy-paste it. No click-to-open.
 - A `Button` whose RPC handler shells out to the OS opener (`open <url>`) server-side. This opens the OS default browser rather than a tab in the current DevTools browser, requires a server-side opener, and is awkward as a general pattern.
 

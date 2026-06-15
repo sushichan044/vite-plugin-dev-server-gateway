@@ -5,11 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:hub": "vite",
+    "dev:gateway": "vite",
     "dev:instance": "node launch.mjs"
   },
   "dependencies": {
-    "vite-plugin-preview-hub": "workspace:*"
+    "vite-plugin-dev-server-gateway": "workspace:*"
   },
   "devDependencies": {
     "vite": "catalog:dev"

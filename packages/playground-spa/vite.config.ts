@@ -1,18 +1,18 @@
 import type { Plugin } from "vite";
 import { defineConfig } from "vite";
-import { previewHub } from "vite-plugin-preview-hub";
+import { devServerGateway } from "vite-plugin-dev-server-gateway";
 
 // Thread the resolved mount path into Vite's `base`, applying the same normalization at every
-// consumption site (D4). Unset (the hub) falls back to "/".
-const base = process.env["PREVIEW_HUB_BASE"]
-  ? process.env["PREVIEW_HUB_BASE"].replace(/\/?$/, "/")
+// consumption site (D4). Unset (the gateway) falls back to "/".
+const base = process.env["PREVIEW_GATEWAY_BASE"]
+  ? process.env["PREVIEW_GATEWAY_BASE"].replace(/\/?$/, "/")
   : "/";
 
-const previewName = process.env["PREVIEW_NAME"] ?? "hub";
-const port = process.env["PREVIEW_HUB_PORT"];
+const previewName = process.env["PREVIEW_NAME"] ?? "gateway";
+const port = process.env["PREVIEW_GATEWAY_PORT"];
 
 // Stamp the preview name into the served HTML so it is visible without running client JS — handy
-// for confirming which instance a hub request reached.
+// for confirming which instance a gateway request reached.
 function injectPreviewName(name: string): Plugin {
   return {
     name: "playground:inject-preview-name",
@@ -24,7 +24,7 @@ function injectPreviewName(name: string): Plugin {
 
 export default defineConfig({
   base,
-  plugins: [previewHub(), injectPreviewName(previewName)],
+  plugins: [devServerGateway(), injectPreviewName(previewName)],
   server: {
     port: port !== undefined ? Number(port) : undefined,
     strictPort: port !== undefined,

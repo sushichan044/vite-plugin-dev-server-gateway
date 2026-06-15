@@ -14,7 +14,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router": "^7.0.0",
-    "vite-plugin-preview-hub": "workspace:*"
+    "vite-plugin-dev-server-gateway": "workspace:*"
   },
   "devDependencies": {
     "@react-router/dev": "^7.0.0",
