@@ -1,0 +1,17 @@
+{
+  "name": "@playground/spa",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:hub": "vite",
+    "dev:instance": "node launch.mjs"
+  },
+  "dependencies": {
+    "vite-plugin-preview-hub": "workspace:*"
+  },
+  "devDependencies": {
+    "vite": "catalog:dev"
+  }
+}

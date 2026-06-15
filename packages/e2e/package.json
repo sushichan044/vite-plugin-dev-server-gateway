@@ -1,0 +1,11 @@
+{
+  "name": "@e2e/preview-hub",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "@playground/spa": "workspace:*",
+    "@types/node": "catalog:dev",
+    "vite-plus": "catalog:dev"
+  }
+}

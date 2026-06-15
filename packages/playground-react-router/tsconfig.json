@@ -1,0 +1,13 @@
+{
+  "extends": "@virtual-live-lab/tsconfig/base",
+  "compilerOptions": {
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node", "vite/client"],
+    "jsx": "react-jsx",
+    "erasableSyntaxOnly": true,
+    "noEmit": true
+  },
+  "include": ["app", "vite.config.ts", "react-router.config.ts"]
+}

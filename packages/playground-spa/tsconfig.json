@@ -1,0 +1,12 @@
+{
+  "extends": "@virtual-live-lab/tsconfig/base",
+  "compilerOptions": {
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["vite/client"],
+    "erasableSyntaxOnly": true,
+    "noEmit": true
+  },
+  "include": ["src", "vite.config.ts"]
+}
