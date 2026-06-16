@@ -1,11 +1,10 @@
-export { instanceFromEnv } from "./presets/env";
 export { devServerGateway } from "./plugin/plugin";
-export { resolvePreview } from "./resolve/resolve-preview";
+export type { DevServerGatewayOptions } from "./plugin/options";
+export { instanceFromEnv, resolveInstance } from "./instance";
 export type {
-  DevServerGatewayOptions,
+  Instance,
+  InstanceDiagnostics,
+  InstanceKey,
   KeyStrategy,
-  PreviewDiagnostics,
-  PreviewKey,
-  ResolvedPreview,
-  ResolvePreviewOptions,
-} from "./types";
+  ResolveInstanceOptions,
+} from "./instance";

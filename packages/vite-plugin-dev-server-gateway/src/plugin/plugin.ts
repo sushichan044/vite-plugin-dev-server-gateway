@@ -1,12 +1,10 @@
 /// <reference types="@vitejs/devtools-kit" />
 import type { Plugin, UserConfig } from "vite";
 
-import { setupDevtools } from "../devtools/devtools";
-import { PreviewRegistry } from "../registry/registry";
-import type { DevServerGatewayOptions } from "../types";
+import { Registry, setupDevtools, setupGateway } from "../gateway";
+import { setupInstance } from "../instance";
 import { isCanonicalBase } from "../utils";
-import { setupGateway } from "./gateway";
-import { setupInstance } from "./instance";
+import type { DevServerGatewayOptions } from "./options";
 import { resolveOptions } from "./options";
 
 /**
@@ -19,7 +17,7 @@ import { resolveOptions } from "./options";
  */
 export function devServerGateway(options: DevServerGatewayOptions = {}): Plugin {
   const resolved = resolveOptions(options);
-  const registry = new PreviewRegistry();
+  const registry = new Registry();
   const { instance } = resolved;
 
   return {
@@ -31,7 +29,7 @@ export function devServerGateway(options: DevServerGatewayOptions = {}): Plugin 
       if (instance === undefined) {
         return undefined;
       }
-      // A hand-built ResolvedPreview can bypass the normalizing producers (resolvePreview /
+      // A hand-built Instance can bypass the normalizing producers (resolveInstance /
       // instanceFromEnv), and from here `base` is used verbatim as Vite's `base` and registered for
       // verbatim link rendering. Fail fast on a malformed base instead of silently normalizing, so
       // the "exactly one trailing slash" contract (D4) cannot be violated downstream.

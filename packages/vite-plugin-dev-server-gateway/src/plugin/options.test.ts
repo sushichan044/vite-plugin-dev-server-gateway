@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import type { ResolvedPreview } from "../types";
+import type { Instance } from "../instance";
 import { resolveOptions } from "./options";
 
 describe("resolveOptions", () => {
@@ -12,7 +12,7 @@ describe("resolveOptions", () => {
   });
 
   it("passes the resolved preview through untouched", () => {
-    const instance: ResolvedPreview = {
+    const instance: Instance = {
       base: "/preview/app",
       diagnostics: { branch: "feat/x" },
       name: "app",

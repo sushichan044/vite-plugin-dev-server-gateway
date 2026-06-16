@@ -2,9 +2,9 @@
 // the environment so every config file Vite evaluates can see it, then spawns the dev command.
 import { spawn } from "node:child_process";
 
-import { resolvePreview } from "vite-plugin-dev-server-gateway";
+import { resolveInstance } from "vite-plugin-dev-server-gateway";
 
-const resolved = await resolvePreview();
+const resolved = await resolveInstance();
 
 const env = {
   ...process.env,
