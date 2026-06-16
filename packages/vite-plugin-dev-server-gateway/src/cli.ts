@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { cli, define } from "gunshi";
 
+import { detectShell } from "./cli/detect-shell";
 import type { Shell } from "./cli/shell-env";
 import { buildPreviewEnv, formatShellEnv } from "./cli/shell-env";
 import { resolvePreview } from "./resolve/resolve-preview";
@@ -39,7 +40,7 @@ const envCommand = define({
       type: "string",
     },
     shell: {
-      description: `Target shell: ${SHELLS.join(" | ")}`,
+      description: `Target shell: ${SHELLS.join(" | ")} | auto (detect from the environment)`,
       required: true,
       type: "positional",
     },
@@ -52,15 +53,20 @@ const envCommand = define({
   rendering: { header: null, validationErrors: null },
   run: async (ctx) => {
     const { cwd, gatewayOrigin, keyStrategy, mountPath, name, shell } = ctx.values;
-    if (!isShell(shell)) {
-      process.stderr.write(`Unknown shell "${shell}". Use one of: ${SHELLS.join(", ")}\n`);
+    const target = shell === "auto" ? detectShell(process.env) : shell;
+    if (!isShell(target)) {
+      const reason =
+        shell === "auto"
+          ? "Could not detect the shell from the environment."
+          : `Unknown shell "${shell}".`;
+      process.stderr.write(`${reason} Use one of: ${SHELLS.join(", ")}\n`);
       process.exitCode = 1;
       return;
     }
 
     const preview = await resolvePreview({ cwd, keyStrategy, mountPath, name });
     const pairs = buildPreviewEnv({ gatewayOrigin, preview });
-    process.stdout.write(`${formatShellEnv(shell, pairs)}\n`);
+    process.stdout.write(`${formatShellEnv(target, pairs)}\n`);
   },
 });
 
@@ -69,8 +75,8 @@ const mainCommand = define({
   name: BIN_NAME,
   run: (ctx) => {
     ctx.log(
-      `Usage: ${BIN_NAME} env <bash|zsh|fish|powershell> [options]\n` +
-        `Example: eval "$(${BIN_NAME} env bash)" && vite`,
+      `Usage: ${BIN_NAME} env <bash|zsh|fish|powershell|auto> [options]\n` +
+        `Example: eval "$(${BIN_NAME} env auto)" && vite`,
     );
   },
 });
