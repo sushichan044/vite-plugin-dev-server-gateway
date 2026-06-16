@@ -18,10 +18,7 @@ npm install -D vite-plugin-dev-server-gateway
 # or: pnpm add -D vite-plugin-dev-server-gateway
 ```
 
-Add the plugin to every app's `vite.config.ts`. `instanceFromEnv()` reads the resolved preview your
-launch script exported and hands it to the plugin, which wires Vite's `base` and `server.port`
-itself — no `server` block to maintain. It returns `undefined` when the env is absent, so the same
-config runs the gateway:
+Add the plugin to every app's `vite.config.ts`.
 
 ```ts
 // vite.config.ts
@@ -33,8 +30,7 @@ export default defineConfig({
 });
 ```
 
-`instanceFromEnv()` reads the standard env our CLI exports. To use your own env var names, build the
-`instance` (a `ResolvedPreview`: `{ name, port, base, diagnostics? }`) by hand instead.
+`instanceFromEnv()` reads the standard env our CLI exports. To use your own env var names.
 
 Add an instance launch script to `package.json`. The CLI resolves the preview's identity into the
 environment _before_ Vite boots, so every config file Vite evaluates can see it:
