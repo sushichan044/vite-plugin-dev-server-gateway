@@ -81,7 +81,7 @@ function register(origin: string, body: unknown): Promise<Response> {
 
 describe("handleControlRequest", () => {
   it("registers a valid payload and returns 200", async ({ origin, registry }) => {
-    const res = await register(origin, { base: "/preview/app", name: "app", port: 53_001 });
+    const res = await register(origin, { base: "/preview/app/", name: "app", port: 53_001 });
 
     expect(res.status).toBe(200);
     expect(registry.get("app")?.port).toBe(53_001);
@@ -91,20 +91,39 @@ describe("handleControlRequest", () => {
     origin,
     registry,
   }) => {
-    const res = await register(origin, { base: "/preview/app", name: "app", port: 52_000 });
+    const res = await register(origin, { base: "/preview/app/", name: "app", port: 52_000 });
 
     expect(res.status).toBe(400);
     expect(registry.get("app")).toBeUndefined();
   });
 
   it("rejects an invalid name with 400", async ({ origin }) => {
-    const res = await register(origin, { base: "/preview/app", name: "not a slug!", port: 53_001 });
+    const res = await register(origin, {
+      base: "/preview/app/",
+      name: "not a slug!",
+      port: 53_001,
+    });
 
     expect(res.status).toBe(400);
   });
 
+  it.for([
+    ["a non-path scheme", "javascript:alert(1)"],
+    ["a protocol-relative host", "//evil.example.com/"],
+    ["a base without a trailing slash", "/preview/app"],
+    ["a base with a query string", "/preview/app/?x=1"],
+  ])(
+    "rejects %s as base with 400 and does not register",
+    async ([, base], { origin, registry }) => {
+      const res = await register(origin, { base, name: "app", port: 53_001 });
+
+      expect(res.status).toBe(400);
+      expect(registry.get("app")).toBeUndefined();
+    },
+  );
+
   it("deregisters a name and is idempotent", async ({ origin, registry }) => {
-    await register(origin, { base: "/preview/app", name: "app", port: 53_001 });
+    await register(origin, { base: "/preview/app/", name: "app", port: 53_001 });
 
     const res = await fetch(`${origin}/__dev-server-gateway/register`, {
       body: JSON.stringify({ name: "app" }),
@@ -150,7 +169,7 @@ describe("handleControlRequest", () => {
   });
 
   it("lists registered previews as JSON", async ({ origin }) => {
-    await register(origin, { base: "/preview/app", name: "app", port: 53_001 });
+    await register(origin, { base: "/preview/app/", name: "app", port: 53_001 });
 
     const res = await fetch(`${origin}/__dev-server-gateway/list`);
     const body = (await res.json()) as Array<{ name: string }>;

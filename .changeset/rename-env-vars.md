@@ -18,9 +18,9 @@ There is no backward-compatible alias — the old names are removed.
 
 Migration:
 
-- If you launch previews via the CLI (`eval "$(vite-plugin-dev-server-gateway env bash)" && vite`), no change is needed — the CLI emits the new names automatically.
+- When launching previews via the CLI (`eval "$(vite-plugin-dev-server-gateway env bash)" && vite`), no change is needed — the CLI emits the new names automatically.
 - If you wrote a custom Node launch script that sets the env vars by hand, rename them to the `VITE_DEV_SERVER_GATEWAY_*` form.
-- If a framework config (e.g. React Router's `basename`) read a raw env var like `process.env["PREVIEW_GATEWAY_BASE"]`, switch to the `instanceFromEnv()` API instead of referencing raw names:
+- For framework configs (e.g. React Router's `basename`) that read a raw env var like `process.env["PREVIEW_GATEWAY_BASE"]`, switch to the `instanceFromEnv()` API instead of referencing raw names:
 
   ```ts
   import { instanceFromEnv } from "vite-plugin-dev-server-gateway";

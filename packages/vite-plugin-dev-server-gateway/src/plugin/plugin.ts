@@ -4,6 +4,7 @@ import type { Plugin, UserConfig } from "vite";
 import { setupDevtools } from "../devtools/devtools";
 import { PreviewRegistry } from "../registry/registry";
 import type { DevServerGatewayOptions } from "../types";
+import { isCanonicalBase } from "../utils";
 import { setupGateway } from "./gateway";
 import { setupInstance } from "./instance";
 import { resolveOptions } from "./options";
@@ -29,6 +30,15 @@ export function devServerGateway(options: DevServerGatewayOptions = {}): Plugin 
       // own `/` base and default port.
       if (instance === undefined) {
         return undefined;
+      }
+      // A hand-built ResolvedPreview can bypass the normalizing producers (resolvePreview /
+      // instanceFromEnv), and from here `base` is used verbatim as Vite's `base` and registered for
+      // verbatim link rendering. Fail fast on a malformed base instead of silently normalizing, so
+      // the "exactly one trailing slash" contract (D4) cannot be violated downstream.
+      if (!isCanonicalBase(instance.base)) {
+        throw new Error(
+          `Invalid instance.base "${instance.base}": expected an absolute path with exactly one trailing slash (e.g. "/preview/app/").`,
+        );
       }
       return {
         base: instance.base,

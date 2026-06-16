@@ -4,6 +4,7 @@ import { CONTROL_PREFIX, NAME_PATTERN } from "../constants";
 import { isPortInRange } from "../dispatch/match";
 import type { PreviewRegistry } from "../registry/registry";
 import type { RegisterPayload, RegistryEntry } from "../registry/types";
+import { isCanonicalBase } from "../utils";
 import type { GatewayInfo } from "./gateway-info";
 
 export interface ControlDeps {
@@ -155,7 +156,10 @@ function parsePayload(body: unknown, range: readonly [number, number]): ParseRes
   if (typeof port !== "number" || !Number.isInteger(port) || !isPortInRange(port, range)) {
     return { error: "port out of range", ok: false };
   }
-  if (typeof base !== "string") {
+  // `base` arrives from a network POST and is rendered into the index page's `href`s verbatim, so
+  // this is the untrusted boundary: reject anything that is not a canonical path-only base before it
+  // can become a clickable `javascript:`/`//host` link.
+  if (typeof base !== "string" || !isCanonicalBase(base)) {
     return { error: "invalid base", ok: false };
   }
   if (branch !== undefined && typeof branch !== "string") {

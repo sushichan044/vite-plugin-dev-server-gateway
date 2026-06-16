@@ -117,7 +117,7 @@ describe("resolvePreview", () => {
       const result = await resolvePreview({
         keyStrategy: "rootDir",
         cwd: tmpDir,
-        mountPath: "/apps/",
+        mountPath: "/apps",
         name: "foo",
         portRange: [53000, 53999],
       });
