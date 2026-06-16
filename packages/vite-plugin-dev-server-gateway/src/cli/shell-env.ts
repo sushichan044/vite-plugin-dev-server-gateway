@@ -1,17 +1,25 @@
 import type { ResolvedPreview } from "../types";
 
-/** Shells the `env` CLI can target. bash and zsh share POSIX syntax; fish and PowerShell differ. */
-export type Shell = "bash" | "zsh" | "fish" | "powershell";
+/**
+ * Shells the `env` CLI can target. bash and zsh share POSIX syntax; fish and PowerShell differ.
+ */
+export const SHELLS = ["bash", "zsh", "fish", "powershell"] as const;
+
+export type Shell = (typeof SHELLS)[number];
 
 export interface ShellEnvInput {
   preview: ResolvedPreview;
-  /** Exported as `PREVIEW_GATEWAY_ORIGIN` when set, so instances know where to register. */
+  /**
+   * Exported as `PREVIEW_GATEWAY_ORIGIN` when set, so instances know where to register.
+   */
   gatewayOrigin?: string;
 }
 
 /**
- * Build the ordered env var pairs the launch flow consumes. `PREVIEW_GATEWAY_BRANCH` and
- * `PREVIEW_GATEWAY_ORIGIN` are only emitted when known, matching what the instance role reads.
+ * Build the ordered env var pairs the launch flow consumes — a lossless serialization of the
+ * {@link ResolvedPreview} that {@link instanceFromEnv} reads back. `PREVIEW_NAME`,
+ * `PREVIEW_GATEWAY_BASE`, and `PREVIEW_GATEWAY_PORT` are the essentials; `PREVIEW_GATEWAY_BRANCH`
+ * (diagnostics) and `PREVIEW_GATEWAY_ORIGIN` are emitted only when known.
  */
 export function buildPreviewEnv(input: ShellEnvInput): Array<[string, string]> {
   const { gatewayOrigin, preview } = input;
@@ -21,8 +29,8 @@ export function buildPreviewEnv(input: ShellEnvInput): Array<[string, string]> {
     ["PREVIEW_GATEWAY_BASE", preview.base],
     ["PREVIEW_GATEWAY_PORT", String(preview.port)],
   ];
-  if (preview.branch !== undefined) {
-    pairs.push(["PREVIEW_GATEWAY_BRANCH", preview.branch]);
+  if (preview.diagnostics?.branch !== undefined) {
+    pairs.push(["PREVIEW_GATEWAY_BRANCH", preview.diagnostics.branch]);
   }
   if (gatewayOrigin !== undefined) {
     pairs.push(["PREVIEW_GATEWAY_ORIGIN", gatewayOrigin]);
@@ -54,6 +62,9 @@ function formatLine(shell: Shell, key: string, value: string): string {
     case "powershell": {
       // PowerShell single-quoted strings escape ' by doubling it.
       return `$env:${key} = '${value.replaceAll("'", "''")}'`;
+    }
+    default: {
+      throw new Error(`Unsupported shell: ${shell satisfies never}`);
     }
   }
 }

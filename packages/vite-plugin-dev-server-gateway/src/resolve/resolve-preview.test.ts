@@ -51,7 +51,7 @@ describe("resolvePreview", () => {
     expect(result.base).toBe("/preview/my-app");
     expect(result.port).toBeGreaterThanOrEqual(53000);
     expect(result.port).toBeLessThanOrEqual(53999);
-    expect(result.branch).toBeUndefined();
+    expect(result.diagnostics).toBeUndefined();
   });
 
   it("lets an explicit name override the strategy label", async () => {
@@ -76,13 +76,13 @@ describe("resolvePreview", () => {
     expect(result.base).toBe("/apps/foo");
   });
 
-  it("surfaces the branch from the strategy", async () => {
+  it("surfaces the branch from the strategy as diagnostics", async () => {
     const result = await resolvePreview({
       keyStrategy: () => ({ branch: "main", key: "k", label: "app" }),
       portRange: [53000, 53999],
     });
 
-    expect(result.branch).toBe("main");
+    expect(result.diagnostics?.branch).toBe("main");
   });
 
   it("propagates port exhaustion as PortRangeExhaustedError", async () => {

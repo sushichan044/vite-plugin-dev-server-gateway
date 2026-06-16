@@ -1,15 +1,15 @@
 import type { JsonRenderSpec, ViteDevToolsNodeContext } from "@vitejs/devtools-kit";
-import type { Plugin, ResolvedConfig } from "vite";
+import type { Plugin, UserConfig } from "vite";
 import { describe, expect, it } from "vite-plus/test";
 
 import { devServerGateway } from "./plugin";
 
-const MISSING_DIR = "/this/path/should/not/exist/dev-server-gateway";
-
-function applyConfigResolved(plugin: Plugin, root: string): void {
-  const hook = plugin.configResolved;
+function callConfig(plugin: Plugin): UserConfig | undefined {
+  const hook = plugin.config;
   const fn = typeof hook === "function" ? hook : hook?.handler;
-  fn?.call(undefined as never, { root } as unknown as ResolvedConfig);
+  return fn?.call(undefined as never, {}, { command: "serve", mode: "development" }) as
+    | UserConfig
+    | undefined;
 }
 
 function fakeCtx(): { ctx: ViteDevToolsNodeContext; registered: number } {
@@ -43,32 +43,40 @@ describe("devServerGateway", () => {
   });
 
   it("registers the DevTools dock for the gateway role by default", () => {
-    const plugin = devServerGateway();
-    applyConfigResolved(plugin, MISSING_DIR);
-
     const probe = fakeCtx();
-    plugin.devtools?.setup(probe.ctx);
+    devServerGateway().devtools?.setup(probe.ctx);
 
     expect(probe.registered).toBe(1);
   });
 
   it("skips the DevTools dock when devtools is disabled", () => {
-    const plugin = devServerGateway({ devtools: false });
-    applyConfigResolved(plugin, MISSING_DIR);
-
     const probe = fakeCtx();
-    plugin.devtools?.setup(probe.ctx);
+    devServerGateway({ devtools: false }).devtools?.setup(probe.ctx);
 
     expect(probe.registered).toBe(0);
   });
 
   it("skips the DevTools dock for the instance role", () => {
-    const plugin = devServerGateway({ role: "instance" });
-    applyConfigResolved(plugin, MISSING_DIR);
-
     const probe = fakeCtx();
-    plugin.devtools?.setup(probe.ctx);
+    devServerGateway({
+      instance: { base: "/preview/app", name: "app", port: 53_001 },
+    }).devtools?.setup(probe.ctx);
 
     expect(probe.registered).toBe(0);
+  });
+
+  it("wires the carried base (one trailing slash) and a strict server port for an instance", () => {
+    const config = callConfig(
+      devServerGateway({ instance: { base: "/preview/app", name: "app", port: 53_001 } }),
+    );
+
+    expect(config).toEqual({
+      base: "/preview/app/",
+      server: { port: 53_001, strictPort: true },
+    });
+  });
+
+  it("leaves Vite config untouched for the gateway role", () => {
+    expect(callConfig(devServerGateway())).toBeUndefined();
   });
 });

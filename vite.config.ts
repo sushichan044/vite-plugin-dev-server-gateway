@@ -3,7 +3,9 @@ import { defineConfig } from "vite-plus";
 export default defineConfig({
   fmt: {
     ignorePatterns: ["pnpm-lock.yaml", "CHANGELOG.md", "**/.react-router/**", ".sushichan044/**"],
-    jsdoc: true,
+    jsdoc: {
+      "commentLineStrategy": "multiline"
+    },
     sortImports: true,
   },
   lint: {

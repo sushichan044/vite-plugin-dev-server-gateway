@@ -11,6 +11,7 @@ const env = {
   PREVIEW_GATEWAY_BASE: resolved.base,
   PREVIEW_GATEWAY_PORT: String(resolved.port),
   PREVIEW_NAME: resolved.name,
+  ...(resolved.diagnostics?.branch ? { PREVIEW_GATEWAY_BRANCH: resolved.diagnostics.branch } : {}),
 };
 
 console.log(

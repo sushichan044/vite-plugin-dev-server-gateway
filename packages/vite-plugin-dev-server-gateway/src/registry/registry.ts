@@ -1,10 +1,14 @@
 import type { RegisterPayload, RegistryEntry } from "./types";
 
-/** Notified with the current entry list whenever the registry changes structurally. */
+/**
+ * Notified with the current entry list whenever the registry changes structurally.
+ */
 export type RegistryListener = (entries: RegistryEntry[]) => void;
 
 export interface PreviewRegistryOptions {
-  /** Clock injection for tests. @default Date.now */
+  /**
+   * Clock injection for tests. @default Date.now
+   */
   now?: () => number;
 }
 
@@ -27,7 +31,9 @@ export class PreviewRegistry {
     this.#now = options.now ?? Date.now;
   }
 
-  /** Insert or refresh an entry. New registrations keep `registeredAt`; heartbeats bump `lastSeen`. */
+  /**
+   * Insert or refresh an entry. New registrations keep `registeredAt`; heartbeats bump `lastSeen`.
+   */
   upsert(payload: RegisterPayload): RegistryEntry {
     const timestamp = this.#now();
     const existing = this.#entries.get(payload.name);
@@ -53,7 +59,9 @@ export class PreviewRegistry {
     return this.#entries.get(name);
   }
 
-  /** All entries, sorted by name for stable rendering. */
+  /**
+   * All entries, sorted by name for stable rendering.
+   */
   list(): RegistryEntry[] {
     return [...this.#entries.values()].sort((a, b) => a.name.localeCompare(b.name));
   }
@@ -62,7 +70,9 @@ export class PreviewRegistry {
     return this.#entries.size;
   }
 
-  /** Remove one entry (e.g. graceful deregister or dispatch connect failure). */
+  /**
+   * Remove one entry (e.g. graceful deregister or dispatch connect failure).
+   */
   remove(name: string): boolean {
     const removed = this.#entries.delete(name);
     if (removed) {
@@ -71,7 +81,9 @@ export class PreviewRegistry {
     return removed;
   }
 
-  /** Remove entries whose last heartbeat is older than `staleMs`. Returns the evicted names. */
+  /**
+   * Remove entries whose last heartbeat is older than `staleMs`. Returns the evicted names.
+   */
   evictStale(staleMs: number): string[] {
     const cutoff = this.#now() - staleMs;
     const evicted: string[] = [];
@@ -87,7 +99,9 @@ export class PreviewRegistry {
     return evicted;
   }
 
-  /** Subscribe to structural changes. Returns an unsubscribe function. */
+  /**
+   * Subscribe to structural changes. Returns an unsubscribe function.
+   */
   subscribe(listener: RegistryListener): () => void {
     this.#listeners.add(listener);
     return () => {

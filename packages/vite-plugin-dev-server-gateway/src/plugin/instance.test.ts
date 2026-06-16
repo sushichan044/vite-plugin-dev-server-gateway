@@ -4,6 +4,7 @@ import { createServer } from "node:http";
 import type { ViteDevServer } from "vite";
 import { afterEach, beforeEach, describe, expect, it } from "vite-plus/test";
 
+import type { ResolvedPreview } from "../types";
 import { setupInstance } from "./instance";
 import type { ResolvedGatewayOptions } from "./options";
 
@@ -16,7 +17,6 @@ let gateway: Server;
 let gatewayOrigin: string;
 let received: ReceivedRequest[];
 let httpServer: Server;
-const envBackup = { ...process.env };
 
 function readBody(req: IncomingMessage): Promise<unknown> {
   return new Promise((resolve) => {
@@ -48,14 +48,20 @@ async function waitFor(predicate: () => boolean, timeoutMs = 2000): Promise<void
   }
 }
 
+const APP_INSTANCE: ResolvedPreview = {
+  base: "/preview/app",
+  name: "app",
+  port: 53_001,
+};
+
 function options(overrides: Partial<ResolvedGatewayOptions> = {}): ResolvedGatewayOptions {
   return {
     devtools: true,
     heartbeatMs: 100_000,
     gatewayOrigin,
+    instance: APP_INSTANCE,
     mountPath: "/preview",
     portRange: [53_000, 53_999],
-    role: "instance",
     staleMs: 15_000,
     ...overrides,
   };
@@ -87,15 +93,9 @@ beforeEach(async () => {
   gatewayOrigin = `http://127.0.0.1:${port}`;
 
   httpServer = createServer();
-
-  process.env["PREVIEW_NAME"] = "app";
-  process.env["PREVIEW_GATEWAY_BASE"] = "/preview/app";
-  process.env["PREVIEW_GATEWAY_PORT"] = "53001";
-  delete process.env["PREVIEW_GATEWAY_BRANCH"];
 });
 
 afterEach(async () => {
-  process.env = { ...envBackup };
   await new Promise<void>((resolve) => {
     gateway.close(() => {
       resolve();
@@ -105,7 +105,7 @@ afterEach(async () => {
 
 describe("setupInstance", () => {
   it("registers with the gateway once the instance server is listening", async () => {
-    setupInstance(fakeServer(), options());
+    setupInstance(fakeServer(), APP_INSTANCE, options());
     httpServer.emit("listening");
 
     await waitFor(() => received.length >= 1);
@@ -115,8 +115,22 @@ describe("setupInstance", () => {
     expect(first?.body).toEqual({ base: "/preview/app", name: "app", port: 53_001 });
   });
 
+  it("includes the diagnostics branch in the registration", async () => {
+    setupInstance(fakeServer(), { ...APP_INSTANCE, diagnostics: { branch: "feat/x" } }, options());
+    httpServer.emit("listening");
+
+    await waitFor(() => received.length >= 1);
+
+    expect(received[0]?.body).toEqual({
+      base: "/preview/app",
+      branch: "feat/x",
+      name: "app",
+      port: 53_001,
+    });
+  });
+
   it("deregisters with the gateway on shutdown", async () => {
-    setupInstance(fakeServer(), options());
+    setupInstance(fakeServer(), APP_INSTANCE, options());
     httpServer.emit("listening");
     await waitFor(() => received.length >= 1);
 
@@ -125,15 +139,5 @@ describe("setupInstance", () => {
 
     const deregister = received.find((entry) => entry.method === "DELETE");
     expect(deregister?.body).toEqual({ name: "app" });
-  });
-
-  it("skips registration when the required env vars are missing", async () => {
-    delete process.env["PREVIEW_NAME"];
-
-    setupInstance(fakeServer(), options());
-    httpServer.emit("listening");
-    await delay(100);
-
-    expect(received).toHaveLength(0);
   });
 });

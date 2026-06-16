@@ -10,7 +10,9 @@ import type { RegistryEntry } from "../registry/types";
 // both ::1 and 127.0.0.1, so dispatch reaches the instance regardless of which loopback it bound.
 const LOOPBACK = "localhost";
 
-/** Forward an HTTP request to the preview at `entry.port`, piping the response back. */
+/**
+ * Forward an HTTP request to the preview at `entry.port`, piping the response back.
+ */
 export function proxyHttp(
   entry: RegistryEntry,
   req: IncomingMessage,
@@ -83,7 +85,9 @@ function serializeRequestHead(
   return `${block}\r\n`;
 }
 
-/** Send a readable 502 telling the user which preview isn't running. */
+/**
+ * Send a readable 502 telling the user which preview isn't running.
+ */
 export function send502(res: ServerResponse, name: string): void {
   if (!res.headersSent) {
     res.writeHead(502, { "content-type": "text/plain; charset=utf-8" });
@@ -91,7 +95,9 @@ export function send502(res: ServerResponse, name: string): void {
   res.end(`Preview '${name}' is not running`);
 }
 
-/** Tear down a WebSocket upgrade with a 502 written to the raw socket. */
+/**
+ * Tear down a WebSocket upgrade with a 502 written to the raw socket.
+ */
 export function destroyWsWith502(socket: Duplex): void {
   socket.write("HTTP/1.1 502 Bad Gateway\r\nConnection: close\r\n\r\n");
   socket.destroy();

@@ -14,7 +14,7 @@
   "bugs": {
     "url": "https://github.com/sushichan044/vite-plugin-dev-server-gateway/issues"
   },
-  "license": "",
+  "license": "MIT",
   "author": {
     "name": "sushichan044",
     "url": "https://github.com/sushichan044"

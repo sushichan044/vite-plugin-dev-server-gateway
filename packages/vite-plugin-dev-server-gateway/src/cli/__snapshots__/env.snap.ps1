@@ -1,0 +1,2 @@
+$env:PREVIEW_NAME = 'app-a'
+$env:PREVIEW_GATEWAY_PORT = '53012'

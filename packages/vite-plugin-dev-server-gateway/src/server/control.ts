@@ -10,7 +10,9 @@ export interface ControlDeps {
   registry: PreviewRegistry;
   portRange: readonly [number, number];
   mountPath: string;
-  /** The gateway's own server info, tracked apart from the instance registry. */
+  /**
+   * The gateway's own server info, tracked apart from the instance registry.
+   */
   getGatewayInfo: () => GatewayInfo | null;
 }
 

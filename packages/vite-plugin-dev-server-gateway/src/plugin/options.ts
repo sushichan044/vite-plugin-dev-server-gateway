@@ -4,31 +4,13 @@ import {
   DEFAULT_PORT_RANGE,
   DEFAULT_STALE_MS,
 } from "../constants";
+import type { DevServerGatewayOptions, ResolvedPreview } from "../types";
 
-/** Which role the plugin plays. `auto` is a heuristic; explicit values always win (D1). */
-export type GatewayRole = "gateway" | "instance" | "auto";
-
-/** Options for the {@link devServerGateway} plugin. All optional; defaults cover the common case. */
-export interface DevServerGatewayOptions {
-  /** @default "auto" */
-  role?: GatewayRole;
-  /** Must match the value used at resolve time. @default "/preview" */
-  mountPath?: string;
-  /** Bounds the dispatch security check (D5). @default [53000, 53999] */
-  portRange?: [number, number];
-  /** Where instances register. @default env PREVIEW_GATEWAY_ORIGIN, else the Vite server origin */
-  gatewayOrigin?: string;
-  /** Heartbeat interval (ms). @default 5000 */
-  heartbeatMs?: number;
-  /** Eviction window (ms): a couple of missed beats. @default 15000 */
-  staleMs?: number;
-  /** Register a Vite DevTools tab for the registry (D7). @default true */
-  devtools?: boolean;
-}
-
-/** {@link DevServerGatewayOptions} with defaults applied (except `gatewayOrigin`, resolved later). */
+/**
+ * {@link DevServerGatewayOptions} with defaults applied (except `gatewayOrigin`, resolved later).
+ */
 export interface ResolvedGatewayOptions {
-  role: GatewayRole;
+  instance: ResolvedPreview | undefined;
   mountPath: string;
   portRange: [number, number];
   gatewayOrigin: string | undefined;
@@ -40,11 +22,11 @@ export interface ResolvedGatewayOptions {
 export function resolveOptions(options: DevServerGatewayOptions): ResolvedGatewayOptions {
   return {
     devtools: options.devtools ?? true,
-    heartbeatMs: options.heartbeatMs ?? DEFAULT_HEARTBEAT_MS,
     gatewayOrigin: options.gatewayOrigin ?? process.env["PREVIEW_GATEWAY_ORIGIN"],
+    heartbeatMs: options.heartbeatMs ?? DEFAULT_HEARTBEAT_MS,
+    instance: options.instance,
     mountPath: options.mountPath ?? DEFAULT_MOUNT_PATH,
     portRange: options.portRange ?? DEFAULT_PORT_RANGE,
-    role: options.role ?? "auto",
     staleMs: options.staleMs ?? DEFAULT_STALE_MS,
   };
 }

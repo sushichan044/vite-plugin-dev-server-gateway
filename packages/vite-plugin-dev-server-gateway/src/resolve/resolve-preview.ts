@@ -29,5 +29,10 @@ export async function resolvePreview(
   // Stored base is slash-free (D4); consumers normalize to exactly one trailing slash.
   const base = `${mountPath.replace(/\/+$/, "")}/${name}`;
 
-  return { base, branch: resolved.branch, name, port };
+  return {
+    base,
+    name,
+    port,
+    ...(resolved.branch === undefined ? {} : { diagnostics: { branch: resolved.branch } }),
+  };
 }

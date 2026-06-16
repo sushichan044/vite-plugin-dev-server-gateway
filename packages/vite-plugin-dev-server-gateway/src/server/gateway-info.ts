@@ -7,7 +7,9 @@
  */
 export interface GatewayInfo {
   name: string;
-  /** Always `/`: the gateway serves its own app at the origin root. */
+  /**
+   * Always `/`: the gateway serves its own app at the origin root.
+   */
   base: string;
   port: number;
   branch?: string;

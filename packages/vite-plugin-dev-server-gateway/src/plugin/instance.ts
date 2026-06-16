@@ -1,43 +1,26 @@
 import type { ViteDevServer } from "vite";
 
 import { CONTROL_PREFIX } from "../constants";
+import type { ResolvedPreview } from "../types";
 import type { ResolvedGatewayOptions } from "./options";
 
 const DEFAULT_HUB_ORIGIN = "http://localhost:5173";
 
 /**
- * Wire the instance role: read the identity the launch script exported (D4), then self-register and
- * heartbeat to the gateway, deregistering on shutdown.
+ * Wire the instance role from the resolved `instance` identity (D4): self-register and heartbeat to
+ * the gateway, deregistering on shutdown.
  *
  * The heartbeat loop doubles as the retry loop — if the gateway is not up yet, a failed beat is
  * ignored and the next one succeeds once the gateway appears. No startup ordering requirement
  * (D2).
  */
-export function setupInstance(server: ViteDevServer, options: ResolvedGatewayOptions): void {
-  const name = process.env["PREVIEW_NAME"];
-  const base = process.env["PREVIEW_GATEWAY_BASE"];
-  const portValue = process.env["PREVIEW_GATEWAY_PORT"];
-
-  if (
-    name === undefined ||
-    name === "" ||
-    base === undefined ||
-    base === "" ||
-    portValue === undefined
-  ) {
-    server.config.logger.warn(
-      "[dev-server-gateway] instance role, but PREVIEW_NAME / PREVIEW_GATEWAY_BASE / PREVIEW_GATEWAY_PORT are not all set; skipping registration",
-    );
-    return;
-  }
-
-  const port = Number(portValue);
-  if (!Number.isInteger(port)) {
-    server.config.logger.warn(`[dev-server-gateway] invalid PREVIEW_GATEWAY_PORT: ${portValue}`);
-    return;
-  }
-
-  const branch = process.env["PREVIEW_GATEWAY_BRANCH"];
+export function setupInstance(
+  server: ViteDevServer,
+  instance: ResolvedPreview,
+  options: ResolvedGatewayOptions,
+): void {
+  const { base, name, port } = instance;
+  const branch = instance.diagnostics?.branch;
   const gatewayOrigin = options.gatewayOrigin ?? DEFAULT_HUB_ORIGIN;
   const registerUrl = `${gatewayOrigin}${CONTROL_PREFIX}/register`;
   const registerBody = JSON.stringify({ base, branch, name, port });

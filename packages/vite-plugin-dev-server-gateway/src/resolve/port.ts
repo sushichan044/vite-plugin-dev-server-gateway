@@ -3,19 +3,25 @@ import { createServer } from "node:net";
 
 import { PortRangeExhaustedError } from "../errors";
 
-/** Deterministic 32-bit hash of a key. Same key always yields the same number (D3 stable port). */
+/**
+ * Deterministic 32-bit hash of a key. Same key always yields the same number (D3 stable port).
+ */
 export function hashKey(key: string): number {
   return createHash("sha256").update(key).digest().readUInt32BE(0);
 }
 
-/** Map a key to a stable preferred port within the inclusive range. */
+/**
+ * Map a key to a stable preferred port within the inclusive range.
+ */
 export function stablePort(key: string, range: readonly [number, number]): number {
   const [min, max] = range;
   const span = max - min + 1;
   return min + (hashKey(key) % span);
 }
 
-/** Resolve true when nothing is listening on the loopback port. */
+/**
+ * Resolve true when nothing is listening on the loopback port.
+ */
 function isPortFree(port: number): Promise<boolean> {
   return new Promise((resolve) => {
     const server = createServer();

@@ -1,0 +1,2 @@
+set -gx PREVIEW_NAME 'app-a'
+set -gx PREVIEW_GATEWAY_PORT '53012'

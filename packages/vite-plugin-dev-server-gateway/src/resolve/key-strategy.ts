@@ -4,7 +4,9 @@ import { basename } from "node:path";
 import { GitBranchResolutionError } from "../errors";
 import type { KeyStrategy, PreviewKey } from "../types";
 
-/** Read the current git branch via `git`, throwing when there is no repo or HEAD is detached. */
+/**
+ * Read the current git branch via `git`, throwing when there is no repo or HEAD is detached.
+ */
 export function readGitBranch(cwd: string): string {
   let branch: string;
   try {
@@ -23,7 +25,9 @@ export function readGitBranch(cwd: string): string {
   return branch;
 }
 
-/** Resolve a {@link KeyStrategy} into a concrete {@link PreviewKey} for the given working dir. */
+/**
+ * Resolve a {@link KeyStrategy} into a concrete {@link PreviewKey} for the given working dir.
+ */
 export async function resolveKey(strategy: KeyStrategy, cwd: string): Promise<PreviewKey> {
   if (strategy === "rootDir") {
     return { key: cwd, label: basename(cwd) };

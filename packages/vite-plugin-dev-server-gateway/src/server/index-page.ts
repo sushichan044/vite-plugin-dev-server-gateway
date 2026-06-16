@@ -1,9 +1,11 @@
 import { CONTROL_PREFIX } from "../constants";
 import type { RegistryEntry } from "../registry/types";
-import { normalizeBase } from "../resolve/base";
+import { ensureTrailingSlash } from "../utils";
 import type { GatewayInfo } from "./gateway-info";
 
-/** The fields a table row needs; satisfied by both {@link RegistryEntry} and {@link GatewayInfo}. */
+/**
+ * The fields a table row needs; satisfied by both {@link RegistryEntry} and {@link GatewayInfo}.
+ */
 type Row = Pick<RegistryEntry, "base" | "branch" | "name" | "port">;
 
 const HTML_ESCAPES: Record<string, string> = {
@@ -19,7 +21,7 @@ function escapeHtml(value: string): string {
 }
 
 function renderRow(entry: Row): string {
-  const href = normalizeBase(entry.base);
+  const href = ensureTrailingSlash(entry.base);
   return `<tr>
         <td><span class="dot" aria-hidden="true"></span><a href="${escapeHtml(href)}" target="_blank" rel="noopener">${escapeHtml(entry.name)}</a></td>
         <td>${entry.branch === undefined ? '<span class="muted">—</span>' : `<span class="badge">${escapeHtml(entry.branch)}</span>`}</td>

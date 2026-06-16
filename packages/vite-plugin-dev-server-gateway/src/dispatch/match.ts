@@ -24,14 +24,18 @@ export function matchPreviewName(url: string, mountPath: string): string | null 
   return name === "" ? null : name;
 }
 
-/** True when the request URL targets the index page (`${mountPath}` or `${mountPath}/`). */
+/**
+ * True when the request URL targets the index page (`${mountPath}` or `${mountPath}/`).
+ */
 export function isIndexPath(url: string, mountPath: string): boolean {
   const prefix = mountPath.replace(/\/+$/, "");
   const pathname = url.split("?", 1)[0] ?? url;
   return pathname === prefix || pathname === `${prefix}/`;
 }
 
-/** The port-range security gate: the gateway only ever proxies to ports inside this range (D5). */
+/**
+ * The port-range security gate: the gateway only ever proxies to ports inside this range (D5).
+ */
 export function isPortInRange(port: number, range: readonly [number, number]): boolean {
   return port >= range[0] && port <= range[1];
 }

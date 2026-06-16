@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   enable-auto-merge:
-    if: github.actor == 'dependabot[bot]' && github.repository == 'sushichan044/template-ts-lib-monorepo'
+    if: github.actor == 'dependabot[bot]' && github.repository == 'sushichan044/vite-plugin-dev-server-gateway'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:

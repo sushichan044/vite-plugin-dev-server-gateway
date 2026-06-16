@@ -1,0 +1,2 @@
+export PREVIEW_NAME='app-a'
+export PREVIEW_GATEWAY_PORT='53012'

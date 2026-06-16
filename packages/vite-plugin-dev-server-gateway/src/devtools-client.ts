@@ -1,7 +1,7 @@
 import type { DockClientScriptContext } from "@vitejs/devtools-kit/client";
 
 import { CONTROL_PREFIX } from "./constants";
-import { normalizeBase } from "./resolve/base";
+import { ensureTrailingSlash } from "./resolve/base";
 import type { GatewayInfo } from "./server/gateway-info";
 
 interface ListEntry {
@@ -60,7 +60,7 @@ function cell(text: string, className?: string): HTMLTableCellElement {
 }
 
 function rowFor(entry: ListEntry): HTMLTableRowElement {
-  const href = normalizeBase(entry.base);
+  const href = ensureTrailingSlash(entry.base);
   const tr = document.createElement("tr");
 
   const nameCell = document.createElement("td");
@@ -128,7 +128,7 @@ export default function setupGatewayPanel(ctx: DockClientScriptContext): void {
         return;
       }
       const config = (await response.json()) as ConfigResponse;
-      anchor.href = normalizeBase(config.mountPath);
+      anchor.href = ensureTrailingSlash(config.mountPath);
       anchor.hidden = false;
       if (hubBody !== undefined) {
         fill(hubBody, config.gateway === null ? [] : [config.gateway], "No gateway registered.");
