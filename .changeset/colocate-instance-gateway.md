@@ -8,12 +8,12 @@ The codebase used two names — `preview` and `instance` — for the same thing 
 
 Renamed public API (no backward-compatible aliases):
 
-| Old                     | New                     |
-| ----------------------- | ----------------------- |
-| `resolvePreview`        | `resolveInstance`       |
-| `ResolvedPreview`       | `Instance`              |
-| `PreviewDiagnostics`    | `InstanceDiagnostics`   |
-| `PreviewKey`            | `InstanceKey`           |
+| Old                     | New                      |
+| ----------------------- | ------------------------ |
+| `resolvePreview`        | `resolveInstance`        |
+| `ResolvedPreview`       | `Instance`               |
+| `PreviewDiagnostics`    | `InstanceDiagnostics`    |
+| `PreviewKey`            | `InstanceKey`            |
 | `ResolvePreviewOptions` | `ResolveInstanceOptions` |
 
 `instanceFromEnv`, `devServerGateway`, `DevServerGatewayOptions`, and `KeyStrategy` are unchanged. The exported env var names (`VITE_DEV_SERVER_GATEWAY_*`), the default mount path (`/preview`), and all runtime behavior are unchanged.
