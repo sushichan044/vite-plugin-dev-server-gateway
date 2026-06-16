@@ -19,6 +19,10 @@ describe("matchInstanceName", () => {
     expect(matchInstanceName("/preview/", "/preview")).toBeNull();
   });
 
+  it("returns null for the mount root without a trailing slash", () => {
+    expect(matchInstanceName("/preview", "/preview")).toBeNull();
+  });
+
   it("returns null for an unrelated path", () => {
     expect(matchInstanceName("/other/foo", "/preview")).toBeNull();
   });

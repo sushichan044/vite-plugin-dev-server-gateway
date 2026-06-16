@@ -115,11 +115,10 @@ previews never fight over a port.
 
 - `"rootDir"` (default) — one preview per project directory; no git required.
 - `"gitBranch"` — one preview per branch; great with worktrees.
-- a custom `(cwd) => InstanceKey | string` — full control over the name/port key.
 
 ### Plugin options
 
-See `DevServerGatewayOptions` in `src/types.ts`.
+See `DevServerGatewayOptions` in `src/plugin/options.ts`.
 
 ## How it works
 

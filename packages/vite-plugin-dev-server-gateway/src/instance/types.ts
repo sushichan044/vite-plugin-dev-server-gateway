@@ -1,5 +1,5 @@
 /**
- * A preview's identity, produced by a {@link KeyStrategy}.
+ * An instance's identity, produced by a {@link KeyStrategy}.
  *
  * `key` is hashed into a stable port; `label` is the human source for the URL slug. They are kept
  * separate because the port key can be a long absolute path that makes a poor slug (D3).
@@ -20,11 +20,11 @@ export interface InstanceKey {
 }
 
 /**
- * How a preview derives its stable identity.
+ * How an instance derives its stable identity.
  *
  * - `"rootDir"` (default): key is the project root dir, label its basename. Maps 1:1 to a checkout
  *   and needs no git.
- * - `"gitBranch"`: key and label are the current branch. Opt-in per-branch previews.
+ * - `"gitBranch"`: key and label are the current branch. Opt-in per-branch instances.
  */
 export type KeyStrategy = "rootDir" | "gitBranch";
 
@@ -57,9 +57,9 @@ export interface ResolveInstanceOptions {
 }
 
 /**
- * Display-only metadata about a preview, surfaced in the registry index and DevTools tab. It never
- * affects how the dev server is stood up or how requests are routed — kept apart from the fields a
- * preview needs to run.
+ * Display-only metadata about an instance, surfaced in the registry index and DevTools tab. It
+ * never affects how the dev server is stood up or how requests are routed — kept apart from the
+ * fields an instance needs to run.
  */
 export interface InstanceDiagnostics {
   /**
@@ -69,9 +69,9 @@ export interface InstanceDiagnostics {
 }
 
 /**
- * A fully resolved preview: everything needed to stand the dev server up, route to it, and describe
- * it. The single currency between the launch flow and the plugin — {@link resolveInstance} and
- * {@link instanceFromEnv} both produce it, and the plugin's `instance` option consumes it.
+ * A fully resolved instance: everything needed to stand the dev server up, route to it, and
+ * describe it. The single currency between the launch flow and the plugin — {@link resolveInstance}
+ * and {@link instanceFromEnv} both produce it, and the plugin's `instance` option consumes it.
  *
  * `base` is carried (not re-derived) so other config files — a framework router's `basename`, etc.
  * — can read the same value the gateway routes on.
@@ -86,7 +86,7 @@ export interface Instance {
    */
   port: number;
   /**
-   * Mount path for this preview, e.g. `/preview/my-app/` — exactly one trailing slash (D4).
+   * Mount path for this instance, e.g. `/preview/my-app/` — exactly one trailing slash (D4).
    */
   base: string;
   /**
