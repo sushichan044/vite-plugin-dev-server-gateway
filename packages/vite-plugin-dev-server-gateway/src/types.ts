@@ -25,12 +25,8 @@ export interface PreviewKey {
  * - `"rootDir"` (default): key is the project root dir, label its basename. Maps 1:1 to a checkout
  *   and needs no git.
  * - `"gitBranch"`: key and label are the current branch. Opt-in per-branch previews.
- * - A function: full control. May return a bare key string or a {@link PreviewKey}.
  */
-export type KeyStrategy =
-  | "rootDir"
-  | "gitBranch"
-  | ((cwd: string) => PreviewKey | Promise<PreviewKey | string> | string);
+export type KeyStrategy = "rootDir" | "gitBranch";
 
 /**
  * Inputs to {@link resolvePreview}, consumed by the user's launch script.

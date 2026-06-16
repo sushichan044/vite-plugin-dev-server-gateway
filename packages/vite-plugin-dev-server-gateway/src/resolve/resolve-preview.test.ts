@@ -1,11 +1,17 @@
+import { execFileSync } from "node:child_process";
+import { mkdtempSync, rmSync } from "node:fs";
 import type { Server } from "node:net";
 import { createServer } from "node:net";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
-import { afterEach, describe, expect, it } from "vite-plus/test";
+import { afterEach, describe, expect, test } from "vite-plus/test";
 
 import { PortRangeExhaustedError } from "../errors";
 import { stablePort } from "./port";
 import { resolvePreview } from "./resolve-preview";
+
+// ---- port-occupation helpers ------------------------------------------------
 
 const openServers: Server[] = [];
 
@@ -40,23 +46,60 @@ afterEach(() => {
   }
 });
 
+// ---- fixtures ---------------------------------------------------------------
+
+/**
+ * A temporary directory whose basename is used as the rootDir label. Cleaned up after each test.
+ */
+const withTmpDir = test.extend<{ tmpDir: string }>({
+  // eslint-disable-next-line no-empty-pattern
+  tmpDir: async ({}, use) => {
+    const dir = mkdtempSync(join(tmpdir(), "resolve-preview-test-"));
+    await use(dir);
+    rmSync(dir, { recursive: true, force: true });
+  },
+});
+
+/**
+ * A temporary git repository (git init + initial commit on "main"). Cleaned up after each test.
+ */
+const withGitRepo = test.extend<{ repoDir: string }>({
+  // eslint-disable-next-line no-empty-pattern
+  repoDir: async ({}, use) => {
+    const dir = mkdtempSync(join(tmpdir(), "resolve-preview-git-"));
+    execFileSync("git", ["init", "-b", "main"], { cwd: dir });
+    execFileSync("git", ["config", "user.email", "test@example.com"], { cwd: dir });
+    execFileSync("git", ["config", "user.name", "Test"], { cwd: dir });
+    execFileSync("git", ["commit", "--allow-empty", "-m", "init"], { cwd: dir });
+    await use(dir);
+    rmSync(dir, { recursive: true, force: true });
+  },
+});
+
+// ---- tests ------------------------------------------------------------------
+
 describe("resolvePreview", () => {
-  it("derives name and slash-free base from the strategy label", async () => {
+  withTmpDir("derives name and slash-free base from the strategy label", async ({ tmpDir }) => {
+    // rootDir strategy: label = basename(cwd). The tmpDir basename starts with
+    // "resolve-preview-test-" which is already slug-compatible.
     const result = await resolvePreview({
-      keyStrategy: () => ({ key: "k", label: "My App" }),
+      keyStrategy: "rootDir",
+      cwd: tmpDir,
       portRange: [53000, 53999],
     });
 
-    expect(result.name).toBe("my-app");
-    expect(result.base).toBe("/preview/my-app");
+    // name is the slugified basename, base is /preview/<name>
+    expect(result.name).toMatch(/^[a-z0-9-]+$/);
+    expect(result.base).toBe(`/preview/${result.name}`);
     expect(result.port).toBeGreaterThanOrEqual(53000);
     expect(result.port).toBeLessThanOrEqual(53999);
     expect(result.diagnostics).toBeUndefined();
   });
 
-  it("lets an explicit name override the strategy label", async () => {
+  withTmpDir("lets an explicit name override the strategy label", async ({ tmpDir }) => {
     const result = await resolvePreview({
-      keyStrategy: () => "ignored",
+      keyStrategy: "rootDir",
+      cwd: tmpDir,
       name: "chosen",
       portRange: [53000, 53999],
     });
@@ -65,9 +108,10 @@ describe("resolvePreview", () => {
     expect(result.base).toBe("/preview/chosen");
   });
 
-  it("honors a custom mountPath and keeps the base slash-free", async () => {
+  withTmpDir("honors a custom mountPath and keeps the base slash-free", async ({ tmpDir }) => {
     const result = await resolvePreview({
-      keyStrategy: () => "k",
+      keyStrategy: "rootDir",
+      cwd: tmpDir,
       mountPath: "/apps/",
       name: "foo",
       portRange: [53000, 53999],
@@ -76,22 +120,23 @@ describe("resolvePreview", () => {
     expect(result.base).toBe("/apps/foo");
   });
 
-  it("surfaces the branch from the strategy as diagnostics", async () => {
+  withGitRepo("surfaces the branch from the strategy as diagnostics", async ({ repoDir }) => {
     const result = await resolvePreview({
-      keyStrategy: () => ({ branch: "main", key: "k", label: "app" }),
+      keyStrategy: "gitBranch",
+      cwd: repoDir,
       portRange: [53000, 53999],
     });
 
     expect(result.diagnostics?.branch).toBe("main");
   });
 
-  it("propagates port exhaustion as PortRangeExhaustedError", async () => {
+  withTmpDir("propagates port exhaustion as PortRangeExhaustedError", async ({ tmpDir }) => {
     const free = await getFreePort();
-    const preferred = stablePort("k", [free, free]);
+    const preferred = stablePort(tmpDir, [free, free]);
     await occupy(preferred);
 
     await expect(
-      resolvePreview({ keyStrategy: () => "k", portRange: [free, free] }),
+      resolvePreview({ keyStrategy: "rootDir", cwd: tmpDir, portRange: [free, free] }),
     ).rejects.toThrow(PortRangeExhaustedError);
   });
 });

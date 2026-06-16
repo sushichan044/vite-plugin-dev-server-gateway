@@ -28,16 +28,11 @@ export function readGitBranch(cwd: string): string {
 /**
  * Resolve a {@link KeyStrategy} into a concrete {@link PreviewKey} for the given working dir.
  */
-export async function resolveKey(strategy: KeyStrategy, cwd: string): Promise<PreviewKey> {
+export function resolveKey(strategy: KeyStrategy, cwd: string): PreviewKey {
   if (strategy === "rootDir") {
     return { key: cwd, label: basename(cwd) };
   }
 
-  if (strategy === "gitBranch") {
-    const branch = readGitBranch(cwd);
-    return { branch, key: branch, label: branch };
-  }
-
-  const result = await strategy(cwd);
-  return typeof result === "string" ? { key: result, label: result } : result;
+  const branch = readGitBranch(cwd);
+  return { branch, key: branch, label: branch };
 }

@@ -20,7 +20,7 @@ export async function resolvePreview(
   const portRange = options.portRange ?? DEFAULT_PORT_RANGE;
   const strategy = options.keyStrategy ?? "rootDir";
 
-  const resolved = await resolveKey(strategy, cwd);
+  const resolved = resolveKey(strategy, cwd);
   const name = deriveName(options.name, resolved.label);
 
   const preferred = stablePort(resolved.key, portRange);
