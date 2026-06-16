@@ -86,7 +86,7 @@ export interface ResolvedPreview {
    */
   port: number;
   /**
-   * Mount path for this preview, e.g. `/preview/my-app` — no trailing slash (D4).
+   * Mount path for this preview, e.g. `/preview/my-app/` — exactly one trailing slash (D4).
    */
   base: string;
   /**
@@ -115,7 +115,8 @@ export interface DevServerGatewayOptions {
    */
   portRange?: [number, number];
   /**
-   * Where instances register. @default env PREVIEW_GATEWAY_ORIGIN, else the Vite server origin
+   * Where instances register. @default env VITE_DEV_SERVER_GATEWAY_ORIGIN, else the Vite server
+   * origin
    */
   gatewayOrigin?: string;
   /**

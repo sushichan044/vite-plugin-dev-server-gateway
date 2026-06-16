@@ -11,7 +11,7 @@ export interface RegisterPayload {
    */
   port: number;
   /**
-   * Mount path for this preview, e.g. `/preview/<name>` — no trailing slash (D4).
+   * Mount path for this preview, e.g. `/preview/<name>/` — exactly one trailing slash (D4).
    */
   base: string;
   /**

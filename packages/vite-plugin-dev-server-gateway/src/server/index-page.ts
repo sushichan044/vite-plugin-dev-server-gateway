@@ -1,6 +1,5 @@
 import { CONTROL_PREFIX } from "../constants";
 import type { RegistryEntry } from "../registry/types";
-import { ensureTrailingSlash } from "../utils";
 import type { GatewayInfo } from "./gateway-info";
 
 /**
@@ -21,7 +20,8 @@ function escapeHtml(value: string): string {
 }
 
 function renderRow(entry: Row): string {
-  const href = ensureTrailingSlash(entry.base);
+  // base already carries exactly one trailing slash (normalized at the producer), so link to it as-is.
+  const href = entry.base;
   return `<tr>
         <td><span class="dot" aria-hidden="true"></span><a href="${escapeHtml(href)}" target="_blank" rel="noopener">${escapeHtml(entry.name)}</a></td>
         <td>${entry.branch === undefined ? '<span class="muted">—</span>' : `<span class="badge">${escapeHtml(entry.branch)}</span>`}</td>
@@ -132,18 +132,17 @@ export function renderIndexHtml(gateway: GatewayInfo | null, previews: RegistryE
       // Only the "Previews" list is live; the "Gateway" section is server-rendered once and never changes.
       const instanceBody = document.getElementById("rows-instance");
       const count = document.getElementById("count");
-      const normBase = (b) => (b ? b.replace(/\\/?$/, "/") : "/");
       const cell = (text, cls) => { const td = document.createElement("td"); if (cls) td.className = cls; td.textContent = text; return td; };
       const link = (href, text, cls) => { const a = document.createElement("a"); a.href = href; a.target = "_blank"; a.rel = "noopener"; a.textContent = text; if (cls) a.className = cls; return a; };
       const rowFor = (e) => {
         const tr = document.createElement("tr");
         const name = document.createElement("td");
         const dot = document.createElement("span"); dot.className = "dot";
-        name.append(dot, link(normBase(e.base), e.name));
+        name.append(dot, link(e.base, e.name));
         const branch = document.createElement("td");
         if (e.branch) { const b = document.createElement("span"); b.className = "badge"; b.textContent = e.branch; branch.append(b); }
         else { const m = document.createElement("span"); m.className = "muted"; m.textContent = "—"; branch.append(m); }
-        const open = document.createElement("td"); open.append(link(normBase(e.base), "Open ↗", "open"));
+        const open = document.createElement("td"); open.append(link(e.base, "Open ↗", "open"));
         tr.append(name, branch, cell(String(e.port), "num"), open);
         return tr;
       };

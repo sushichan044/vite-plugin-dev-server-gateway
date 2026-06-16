@@ -50,7 +50,7 @@ async function waitFor(predicate: () => boolean, timeoutMs = 2000): Promise<void
 }
 
 const APP_INSTANCE: ResolvedPreview = {
-  base: "/preview/app",
+  base: "/preview/app/",
   name: "app",
   port: 53_001,
 };
@@ -131,7 +131,7 @@ describe("setupInstance", () => {
 
     const first = received[0];
     expect(first?.method).toBe("POST");
-    expect(first?.body).toEqual({ base: "/preview/app", name: "app", port: 53_001 });
+    expect(first?.body).toEqual({ base: "/preview/app/", name: "app", port: 53_001 });
   });
 
   it("includes the diagnostics branch in the registration", async ({
@@ -149,7 +149,7 @@ describe("setupInstance", () => {
     await waitFor(() => received.length >= 1);
 
     expect(received[0]?.body).toEqual({
-      base: "/preview/app",
+      base: "/preview/app/",
       branch: "feat/x",
       name: "app",
       port: 53_001,

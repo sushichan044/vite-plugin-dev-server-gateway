@@ -8,10 +8,12 @@ const resolved = await resolvePreview();
 
 const env = {
   ...process.env,
-  PREVIEW_GATEWAY_BASE: resolved.base,
-  PREVIEW_GATEWAY_PORT: String(resolved.port),
-  PREVIEW_NAME: resolved.name,
-  ...(resolved.diagnostics?.branch ? { PREVIEW_GATEWAY_BRANCH: resolved.diagnostics.branch } : {}),
+  VITE_DEV_SERVER_GATEWAY_BASE: resolved.base,
+  VITE_DEV_SERVER_GATEWAY_PORT: String(resolved.port),
+  VITE_DEV_SERVER_GATEWAY_NAME: resolved.name,
+  ...(resolved.diagnostics?.branch
+    ? { VITE_DEV_SERVER_GATEWAY_BRANCH: resolved.diagnostics.branch }
+    : {}),
 };
 
 console.log(

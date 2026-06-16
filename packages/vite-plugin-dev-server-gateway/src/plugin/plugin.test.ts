@@ -59,7 +59,7 @@ describe("devServerGateway", () => {
   it("skips the DevTools dock for the instance role", () => {
     const probe = fakeCtx();
     devServerGateway({
-      instance: { base: "/preview/app", name: "app", port: 53_001 },
+      instance: { base: "/preview/app/", name: "app", port: 53_001 },
     }).devtools?.setup(probe.ctx);
 
     expect(probe.registered).toBe(0);
@@ -67,7 +67,7 @@ describe("devServerGateway", () => {
 
   it("wires the carried base (one trailing slash) and a strict server port for an instance", () => {
     const config = callConfig(
-      devServerGateway({ instance: { base: "/preview/app", name: "app", port: 53_001 } }),
+      devServerGateway({ instance: { base: "/preview/app/", name: "app", port: 53_001 } }),
     );
 
     expect(config).toEqual({

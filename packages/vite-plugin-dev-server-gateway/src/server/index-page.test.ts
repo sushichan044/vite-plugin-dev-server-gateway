@@ -6,7 +6,7 @@ import { renderIndexHtml } from "./index-page";
 
 function entry(overrides: Partial<RegistryEntry> = {}): RegistryEntry {
   return {
-    base: "/preview/app",
+    base: "/preview/app/",
     lastSeen: 0,
     name: "app",
     port: 53_001,
@@ -32,7 +32,7 @@ describe("renderIndexHtml", () => {
 
   it("shows the gateway in the Gateway section, not among the previews", () => {
     const html = renderIndexHtml(gateway({ name: "my-app" }), [
-      entry({ base: "/preview/app-a", name: "app-a" }),
+      entry({ base: "/preview/app-a/", name: "app-a" }),
     ]);
     const hubBody = html.slice(
       html.indexOf('id="rows-gateway"'),
@@ -54,14 +54,14 @@ describe("renderIndexHtml", () => {
     expect(html).toContain("No gateway registered.");
   });
 
-  it("renders a row per preview with a normalized (trailing-slash) link", () => {
-    const html = renderIndexHtml(null, [entry({ base: "/preview/foo", name: "foo" })]);
+  it("renders a row per preview, linking to the preview base verbatim", () => {
+    const html = renderIndexHtml(null, [entry({ base: "/preview/foo/", name: "foo" })]);
     expect(html).toContain(">foo</a>");
     expect(html).toContain('href="/preview/foo/"');
   });
 
   it("opens preview links in a new tab", () => {
-    const html = renderIndexHtml(null, [entry({ base: "/preview/foo", name: "foo" })]);
+    const html = renderIndexHtml(null, [entry({ base: "/preview/foo/", name: "foo" })]);
     expect(html).toContain('href="/preview/foo/" target="_blank" rel="noopener"');
   });
 

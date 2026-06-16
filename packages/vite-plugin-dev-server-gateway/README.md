@@ -70,9 +70,10 @@ vite-plugin-dev-server-gateway env fish | source; and vite
 vite-plugin-dev-server-gateway env powershell | Invoke-Expression; vite
 ```
 
-`env <shell>` emits `PREVIEW_NAME`, `PREVIEW_GATEWAY_BASE`, `PREVIEW_GATEWAY_PORT`, plus
-`PREVIEW_GATEWAY_BRANCH` when the branch is known and `PREVIEW_GATEWAY_ORIGIN` when
-`--gateway-origin` is passed. Each value is quoted with the shell's own escaping. Flags:
+`env <shell>` emits `VITE_DEV_SERVER_GATEWAY_NAME`, `VITE_DEV_SERVER_GATEWAY_BASE`,
+`VITE_DEV_SERVER_GATEWAY_PORT`, plus `VITE_DEV_SERVER_GATEWAY_BRANCH` when the branch is known and
+`VITE_DEV_SERVER_GATEWAY_ORIGIN` when `--gateway-origin` is passed. Each value is quoted with the
+shell's own escaping. Flags:
 
 | Flag               | Description                                                            |
 | ------------------ | ---------------------------------------------------------------------- |
@@ -80,7 +81,7 @@ vite-plugin-dev-server-gateway env powershell | Invoke-Expression; vite
 | `--key-strategy`   | `rootDir` or `gitBranch` (default: `rootDir`).                         |
 | `--mount-path`     | Mount path; must match the plugin's `mountPath` (default: `/preview`). |
 | `--cwd`            | Directory to resolve against (default: current directory).             |
-| `--gateway-origin` | Gateway origin to export as `PREVIEW_GATEWAY_ORIGIN`.                  |
+| `--gateway-origin` | Gateway origin to export as `VITE_DEV_SERVER_GATEWAY_ORIGIN`.          |
 
 If you prefer a Node launch script that resolves and spawns in one process, call `resolvePreview()`
 directly instead of the CLI. It returns a `ResolvedPreview`; export it so `instanceFromEnv()` reads
@@ -94,10 +95,12 @@ import { resolvePreview } from "vite-plugin-dev-server-gateway";
 const resolved = await resolvePreview();
 const env = {
   ...process.env,
-  PREVIEW_NAME: resolved.name,
-  PREVIEW_GATEWAY_BASE: resolved.base,
-  PREVIEW_GATEWAY_PORT: String(resolved.port),
-  ...(resolved.diagnostics?.branch ? { PREVIEW_GATEWAY_BRANCH: resolved.diagnostics.branch } : {}),
+  VITE_DEV_SERVER_GATEWAY_NAME: resolved.name,
+  VITE_DEV_SERVER_GATEWAY_BASE: resolved.base,
+  VITE_DEV_SERVER_GATEWAY_PORT: String(resolved.port),
+  ...(resolved.diagnostics?.branch
+    ? { VITE_DEV_SERVER_GATEWAY_BRANCH: resolved.diagnostics.branch }
+    : {}),
 };
 spawn("pnpm", ["exec", "vite"], { env, stdio: "inherit" }).on("exit", (code) =>
   process.exit(code ?? 0),

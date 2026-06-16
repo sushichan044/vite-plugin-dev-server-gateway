@@ -4,7 +4,6 @@ import type { Plugin, UserConfig } from "vite";
 import { setupDevtools } from "../devtools/devtools";
 import { PreviewRegistry } from "../registry/registry";
 import type { DevServerGatewayOptions } from "../types";
-import { ensureTrailingSlash } from "../utils";
 import { setupGateway } from "./gateway";
 import { setupInstance } from "./instance";
 import { resolveOptions } from "./options";
@@ -32,7 +31,7 @@ export function devServerGateway(options: DevServerGatewayOptions = {}): Plugin 
         return undefined;
       }
       return {
-        base: ensureTrailingSlash(instance.base),
+        base: instance.base,
         server: { port: instance.port, strictPort: true },
       };
     },

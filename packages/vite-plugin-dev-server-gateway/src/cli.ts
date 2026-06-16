@@ -3,7 +3,8 @@ import { cli, define } from "gunshi";
 
 import { detectShell } from "./cli/detect-shell";
 import type { Shell } from "./cli/shell-env";
-import { buildPreviewEnv, formatShellEnv } from "./cli/shell-env";
+import { formatShellEnv } from "./cli/shell-env";
+import { buildPreviewEnv } from "./presets/env";
 import { resolvePreview } from "./resolve/resolve-preview";
 
 const BIN_NAME = "vite-plugin-dev-server-gateway";
@@ -20,7 +21,8 @@ const envCommand = define({
       type: "string",
     },
     gatewayOrigin: {
-      description: "Gateway origin to export as PREVIEW_GATEWAY_ORIGIN (where instances register)",
+      description:
+        "Gateway origin to export as VITE_DEV_SERVER_GATEWAY_ORIGIN (where instances register)",
       toKebab: true,
       type: "string",
     },

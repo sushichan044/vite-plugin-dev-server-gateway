@@ -7,9 +7,9 @@ const resolved = await resolvePreview();
 
 const env = {
   ...process.env,
-  PREVIEW_GATEWAY_BASE: resolved.base,
-  PREVIEW_GATEWAY_PORT: String(resolved.port),
-  PREVIEW_NAME: resolved.name,
+  VITE_DEV_SERVER_GATEWAY_BASE: resolved.base,
+  VITE_DEV_SERVER_GATEWAY_PORT: String(resolved.port),
+  VITE_DEV_SERVER_GATEWAY_NAME: resolved.name,
 };
 
 console.log(

@@ -1,5 +1,6 @@
 import { DEFAULT_MOUNT_PATH, DEFAULT_PORT_RANGE } from "../constants";
 import type { ResolvedPreview, ResolvePreviewOptions } from "../types";
+import { ensureTrailingSlash } from "../utils";
 import { deriveName } from "./name";
 import { probeFreePort, stablePort } from "./port";
 import { resolveKey } from "./strategy";
@@ -26,8 +27,9 @@ export async function resolvePreview(
   const preferred = stablePort(resolved.key, portRange);
   const port = await probeFreePort(preferred, portRange);
 
-  // Stored base is slash-free (D4); consumers normalize to exactly one trailing slash.
-  const base = `${mountPath.replace(/\/+$/, "")}/${name}`;
+  // base carries exactly one trailing slash, normalized here at the single producer so every
+  // consumer (Vite `base`, a framework router's basename, the index links) uses it verbatim (D4).
+  const base = `${ensureTrailingSlash(mountPath)}${name}/`;
 
   return {
     base,
