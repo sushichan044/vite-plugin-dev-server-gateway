@@ -92,11 +92,11 @@ export async function waitForHttp(
 
 function baseEnv(): NodeJS.ProcessEnv {
   const env = { ...process.env };
-  delete env["PREVIEW_NAME"];
-  delete env["PREVIEW_GATEWAY_BASE"];
-  delete env["PREVIEW_GATEWAY_PORT"];
-  delete env["PREVIEW_GATEWAY_ORIGIN"];
-  delete env["PREVIEW_GATEWAY_BRANCH"];
+  delete env["VITE_DEV_SERVER_GATEWAY_NAME"];
+  delete env["VITE_DEV_SERVER_GATEWAY_BASE"];
+  delete env["VITE_DEV_SERVER_GATEWAY_PORT"];
+  delete env["VITE_DEV_SERVER_GATEWAY_ORIGIN"];
+  delete env["VITE_DEV_SERVER_GATEWAY_BRANCH"];
   return env;
 }
 
@@ -120,10 +120,10 @@ export async function startInstance(
   const port = await freePortInRange(after);
   const env = {
     ...baseEnv(),
-    PREVIEW_GATEWAY_BASE: `/preview/${name}`,
-    PREVIEW_GATEWAY_ORIGIN: gatewayOrigin,
-    PREVIEW_GATEWAY_PORT: String(port),
-    PREVIEW_NAME: name,
+    VITE_DEV_SERVER_GATEWAY_BASE: `/preview/${name}`,
+    VITE_DEV_SERVER_GATEWAY_ORIGIN: gatewayOrigin,
+    VITE_DEV_SERVER_GATEWAY_PORT: String(port),
+    VITE_DEV_SERVER_GATEWAY_NAME: name,
   };
   const child = spawn(VITE_BIN, ["--host", "127.0.0.1"], {
     cwd: PLAYGROUND_DIR,

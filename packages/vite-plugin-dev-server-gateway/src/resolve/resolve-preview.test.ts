@@ -79,22 +79,25 @@ const withGitRepo = test.extend<{ repoDir: string }>({
 // ---- tests ------------------------------------------------------------------
 
 describe("resolvePreview", () => {
-  withTmpDir("derives name and slash-free base from the strategy label", async ({ tmpDir }) => {
-    // rootDir strategy: label = basename(cwd). The tmpDir basename starts with
-    // "resolve-preview-test-" which is already slug-compatible.
-    const result = await resolvePreview({
-      keyStrategy: "rootDir",
-      cwd: tmpDir,
-      portRange: [53000, 53999],
-    });
+  withTmpDir(
+    "derives name and a trailing-slash base from the strategy label",
+    async ({ tmpDir }) => {
+      // rootDir strategy: label = basename(cwd). The tmpDir basename starts with
+      // "resolve-preview-test-" which is already slug-compatible.
+      const result = await resolvePreview({
+        keyStrategy: "rootDir",
+        cwd: tmpDir,
+        portRange: [53000, 53999],
+      });
 
-    // name is the slugified basename, base is /preview/<name>
-    expect(result.name).toMatch(/^[a-z0-9-]+$/);
-    expect(result.base).toBe(`/preview/${result.name}`);
-    expect(result.port).toBeGreaterThanOrEqual(53000);
-    expect(result.port).toBeLessThanOrEqual(53999);
-    expect(result.diagnostics).toBeUndefined();
-  });
+      // name is the slugified basename, base is /preview/<name>/ (one trailing slash)
+      expect(result.name).toMatch(/^[a-z0-9-]+$/);
+      expect(result.base).toBe(`/preview/${result.name}/`);
+      expect(result.port).toBeGreaterThanOrEqual(53000);
+      expect(result.port).toBeLessThanOrEqual(53999);
+      expect(result.diagnostics).toBeUndefined();
+    },
+  );
 
   withTmpDir("lets an explicit name override the strategy label", async ({ tmpDir }) => {
     const result = await resolvePreview({
@@ -105,20 +108,23 @@ describe("resolvePreview", () => {
     });
 
     expect(result.name).toBe("chosen");
-    expect(result.base).toBe("/preview/chosen");
+    expect(result.base).toBe("/preview/chosen/");
   });
 
-  withTmpDir("honors a custom mountPath and keeps the base slash-free", async ({ tmpDir }) => {
-    const result = await resolvePreview({
-      keyStrategy: "rootDir",
-      cwd: tmpDir,
-      mountPath: "/apps/",
-      name: "foo",
-      portRange: [53000, 53999],
-    });
+  withTmpDir(
+    "honors a custom mountPath and normalizes to one trailing slash",
+    async ({ tmpDir }) => {
+      const result = await resolvePreview({
+        keyStrategy: "rootDir",
+        cwd: tmpDir,
+        mountPath: "/apps",
+        name: "foo",
+        portRange: [53000, 53999],
+      });
 
-    expect(result.base).toBe("/apps/foo");
-  });
+      expect(result.base).toBe("/apps/foo/");
+    },
+  );
 
   withGitRepo("surfaces the branch from the strategy as diagnostics", async ({ repoDir }) => {
     const result = await resolvePreview({

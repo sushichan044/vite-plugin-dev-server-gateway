@@ -4,6 +4,7 @@ import {
   DEFAULT_PORT_RANGE,
   DEFAULT_STALE_MS,
 } from "../constants";
+import { GATEWAY_ORIGIN_ENV } from "../presets/env";
 import type { DevServerGatewayOptions, ResolvedPreview } from "../types";
 
 /**
@@ -22,7 +23,7 @@ export interface ResolvedGatewayOptions {
 export function resolveOptions(options: DevServerGatewayOptions): ResolvedGatewayOptions {
   return {
     devtools: options.devtools ?? true,
-    gatewayOrigin: options.gatewayOrigin ?? process.env["PREVIEW_GATEWAY_ORIGIN"],
+    gatewayOrigin: options.gatewayOrigin ?? process.env[GATEWAY_ORIGIN_ENV],
     heartbeatMs: options.heartbeatMs ?? DEFAULT_HEARTBEAT_MS,
     instance: options.instance,
     mountPath: options.mountPath ?? DEFAULT_MOUNT_PATH,

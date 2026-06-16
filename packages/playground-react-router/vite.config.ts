@@ -1,21 +1,20 @@
 import { reactRouter } from "@react-router/dev/vite";
 import { DevTools } from "@vitejs/devtools";
 import { defineConfig } from "vite";
-import { devServerGateway } from "vite-plugin-dev-server-gateway";
+import { devServerGateway, instanceFromEnv } from "vite-plugin-dev-server-gateway";
 
-// The SAME normalization one-liner as react-router.config.ts (D4): one canonical form everywhere.
-const base = process.env["PREVIEW_GATEWAY_BASE"]
-  ? process.env["PREVIEW_GATEWAY_BASE"].replace(/\/?$/, "/")
-  : "/";
-
-const port = process.env["PREVIEW_GATEWAY_PORT"];
+// Integrate via instanceFromEnv() instead of reading raw env names: the preview's identity is the
+// single API, and its `base` already carries one trailing slash — the SAME canonical value
+// react-router.config.ts uses (D4).
+const instance = instanceFromEnv();
+const base = instance?.base ?? "/";
 
 export default defineConfig({
   base,
-  plugins: [reactRouter(), DevTools(), devServerGateway()],
+  plugins: [reactRouter(), DevTools(), devServerGateway({ instance })],
   server: {
-    port: port !== undefined ? Number(port) : undefined,
-    strictPort: port !== undefined,
+    port: instance?.port,
+    strictPort: instance !== undefined,
   },
   build: {
     rolldownOptions: {

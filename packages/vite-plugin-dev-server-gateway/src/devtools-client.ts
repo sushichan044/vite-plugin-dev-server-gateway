@@ -60,7 +60,7 @@ function cell(text: string, className?: string): HTMLTableCellElement {
 }
 
 function rowFor(entry: ListEntry): HTMLTableRowElement {
-  const href = ensureTrailingSlash(entry.base);
+  const href = entry.base;
   const tr = document.createElement("tr");
 
   const nameCell = document.createElement("td");
