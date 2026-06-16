@@ -1,9 +1,9 @@
 // Demonstrates D3 for a framework app: resolve identity, export it, then spawn the dev command.
 import { spawn } from "node:child_process";
 
-import { resolvePreview } from "vite-plugin-dev-server-gateway";
+import { resolveInstance } from "vite-plugin-dev-server-gateway";
 
-const resolved = await resolvePreview();
+const resolved = await resolveInstance();
 
 const env = {
   ...process.env,

@@ -1,7 +1,7 @@
 import type { DockClientScriptContext } from "@vitejs/devtools-kit/client";
 
 import { CONTROL_PREFIX } from "./constants";
-import type { GatewayInfo } from "./server/gateway-info";
+import type { GatewayInfo } from "./gateway/types";
 import { ensureTrailingSlash } from "./utils";
 
 interface ListEntry {

@@ -83,16 +83,16 @@ shell's own escaping. Flags:
 | `--cwd`            | Directory to resolve against (default: current directory).             |
 | `--gateway-origin` | Gateway origin to export as `VITE_DEV_SERVER_GATEWAY_ORIGIN`.          |
 
-If you prefer a Node launch script that resolves and spawns in one process, call `resolvePreview()`
-directly instead of the CLI. It returns a `ResolvedPreview`; export it so `instanceFromEnv()` reads
+If you prefer a Node launch script that resolves and spawns in one process, call `resolveInstance()`
+directly instead of the CLI. It returns an `Instance`; export it so `instanceFromEnv()` reads
 it back:
 
 ```js
 // launch.mjs
 import { spawn } from "node:child_process";
-import { resolvePreview } from "vite-plugin-dev-server-gateway";
+import { resolveInstance } from "vite-plugin-dev-server-gateway";
 
-const resolved = await resolvePreview();
+const resolved = await resolveInstance();
 const env = {
   ...process.env,
   VITE_DEV_SERVER_GATEWAY_NAME: resolved.name,
@@ -115,11 +115,10 @@ previews never fight over a port.
 
 - `"rootDir"` (default) — one preview per project directory; no git required.
 - `"gitBranch"` — one preview per branch; great with worktrees.
-- a custom `(cwd) => PreviewKey | string` — full control over the name/port key.
 
 ### Plugin options
 
-See `DevServerGatewayOptions` in `src/types.ts`.
+See `DevServerGatewayOptions` in `src/plugin/options.ts`.
 
 ## How it works
 

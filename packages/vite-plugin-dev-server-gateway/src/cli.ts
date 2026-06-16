@@ -4,8 +4,7 @@ import { cli, define } from "gunshi";
 import { detectShell } from "./cli/detect-shell";
 import type { Shell } from "./cli/shell-env";
 import { formatShellEnv } from "./cli/shell-env";
-import { buildPreviewEnv } from "./presets/env";
-import { resolvePreview } from "./resolve/resolve-preview";
+import { buildInstanceEnv, resolveInstance } from "./instance";
 
 const BIN_NAME = "vite-plugin-dev-server-gateway";
 const SHELLS = ["bash", "zsh", "fish", "powershell"] as const;
@@ -66,8 +65,8 @@ const envCommand = define({
       return;
     }
 
-    const preview = await resolvePreview({ cwd, keyStrategy, mountPath, name });
-    const pairs = buildPreviewEnv({ gatewayOrigin, preview });
+    const instance = await resolveInstance({ cwd, keyStrategy, mountPath, name });
+    const pairs = buildInstanceEnv({ gatewayOrigin, instance });
     process.stdout.write(`${formatShellEnv(target, pairs)}\n`);
   },
 });
