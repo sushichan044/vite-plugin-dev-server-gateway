@@ -11,6 +11,10 @@ describe("ensureTrailingSlash", () => {
     expect(ensureTrailingSlash("/preview/foo/")).toBe("/preview/foo/");
   });
 
+  it("collapses multiple trailing slashes to exactly one", () => {
+    expect(ensureTrailingSlash("/preview/foo//")).toBe("/preview/foo/");
+  });
+
   it("falls back to the root path for undefined", () => {
     expect(ensureTrailingSlash(undefined)).toBe("/");
   });

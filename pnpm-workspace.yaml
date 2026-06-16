@@ -16,7 +16,5 @@ catalogs:
     unplugin-unused: 0.5.7
     vite: 8.0.16
     vite-plus: 0.1.24
-  prod:
-    hono: ^4.12.25
 
 saveExact: true

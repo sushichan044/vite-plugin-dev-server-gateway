@@ -11,7 +11,7 @@ const base = instance?.base ?? "/";
 
 export default defineConfig({
   base,
-  plugins: [reactRouter(), DevTools(), devServerGateway()],
+  plugins: [reactRouter(), DevTools(), devServerGateway({ instance })],
   server: {
     port: instance?.port,
     strictPort: instance !== undefined,
