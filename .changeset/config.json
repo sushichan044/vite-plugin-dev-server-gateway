@@ -10,7 +10,7 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": [],
+  "ignore": ["@e2e/*", "@playground/*"],
   "bumpVersionsWithWorkspaceProtocolOnly": true,
   "prettier": false
 }

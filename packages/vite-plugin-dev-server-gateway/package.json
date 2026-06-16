@@ -1,7 +1,7 @@
 {
   "name": "vite-plugin-dev-server-gateway",
-  "version": "0.0.0",
-  "description": "Fan out to many running Vite dev servers behind one origin, with a live index of every preview.",
+  "version": "0.0.1",
+  "description": "Run many Vite dev servers at once, behind one origin, with a live index of every preview.",
   "keywords": [
     "dev-server",
     "devtools",
