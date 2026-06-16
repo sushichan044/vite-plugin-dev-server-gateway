@@ -1,8 +1,8 @@
 import { DEFAULT_MOUNT_PATH, DEFAULT_PORT_RANGE } from "../constants";
 import type { ResolvedPreview, ResolvePreviewOptions } from "../types";
-import { resolveKey } from "./key-strategy";
 import { deriveName } from "./name";
 import { probeFreePort, stablePort } from "./port";
+import { resolveKey } from "./strategy";
 
 /**
  * Resolve a preview's identity, port, and base path.

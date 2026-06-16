@@ -2,8 +2,8 @@ import type { ViteDevServer } from "vite";
 
 import { isIndexPath, isPortInRange, matchPreviewName } from "../dispatch/match";
 import type { PreviewRegistry } from "../registry/registry";
-import { resolveKey } from "../resolve/key-strategy";
 import { deriveName } from "../resolve/name";
+import { resolveKey } from "../resolve/strategy";
 import { handleControlRequest } from "../server/control";
 import type { GatewayInfo } from "../server/gateway-info";
 import { renderIndexHtml } from "../server/index-page";
@@ -44,10 +44,8 @@ export function setupGateway(
   });
   if (server.httpServer) {
     server.httpServer.once("listening", () => {
-      void buildGatewayInfo(server).then((info) => {
-        gatewayInfo = info;
-        markGatewayInfoReady();
-      });
+      gatewayInfo = buildGatewayInfo(server);
+      markGatewayInfoReady();
     });
   } else {
     markGatewayInfoReady();
@@ -119,7 +117,7 @@ export function setupGateway(
  * app at the origin root). Falls back to the name `gateway` if the root dir does not yield a valid
  * slug, and to `null` when the port is not knowable.
  */
-async function buildGatewayInfo(server: ViteDevServer): Promise<GatewayInfo | null> {
+function buildGatewayInfo(server: ViteDevServer): GatewayInfo | null {
   const address = server.httpServer?.address();
   if (address === null || address === undefined || typeof address === "string") {
     return null;
@@ -128,7 +126,7 @@ async function buildGatewayInfo(server: ViteDevServer): Promise<GatewayInfo | nu
   let name = "gateway";
   let branch: string | undefined;
   try {
-    const key = await resolveKey("rootDir", server.config.root);
+    const key = resolveKey("rootDir", server.config.root);
     name = deriveName(undefined, key.label);
     branch = key.branch;
   } catch {

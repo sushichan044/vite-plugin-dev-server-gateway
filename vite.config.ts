@@ -4,7 +4,7 @@ export default defineConfig({
   fmt: {
     ignorePatterns: ["pnpm-lock.yaml", "CHANGELOG.md", "**/.react-router/**", ".sushichan044/**"],
     jsdoc: {
-      "commentLineStrategy": "multiline"
+      commentLineStrategy: "multiline",
     },
     sortImports: true,
   },

@@ -1,4 +1,4 @@
-export { ensureTrailingSlash, removeTrailingSlash } from "./utils";
+export { ensureTrailingSlash } from "./utils";
 export { instanceFromEnv } from "./plugin/presets/from-env";
 export { devServerGateway } from "./plugin/plugin";
 export { resolvePreview } from "./resolve/resolve-preview";

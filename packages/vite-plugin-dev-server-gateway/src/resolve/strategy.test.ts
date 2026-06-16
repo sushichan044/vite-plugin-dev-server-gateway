@@ -3,7 +3,7 @@ import { execFileSync } from "node:child_process";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { GitBranchResolutionError } from "../errors";
-import { readGitBranch, resolveKey } from "./key-strategy";
+import { readGitBranch, resolveKey } from "./strategy";
 
 vi.mock("node:child_process", () => ({ execFileSync: vi.fn() }));
 

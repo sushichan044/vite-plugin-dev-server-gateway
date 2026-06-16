@@ -33,7 +33,9 @@ function isPortFree(port: number): Promise<boolean> {
   });
 }
 
-/** A free port within the dispatch range, so the gateway's port-range gate accepts the registration. */
+/**
+ * A free port within the dispatch range, so the gateway's port-range gate accepts the registration.
+ */
 export async function freePortInRange(after = PORT_RANGE[0]): Promise<number> {
   for (let port = after; port <= PORT_RANGE[1]; port++) {
     // eslint-disable-next-line no-await-in-loop -- sequential probe, first free port wins

@@ -52,7 +52,9 @@ async function waitForNames(
   }
 }
 
-/** Resolve the HTTP status of a WebSocket upgrade attempt (101 means the upgrade was proxied). */
+/**
+ * Resolve the HTTP status of a WebSocket upgrade attempt (101 means the upgrade was proxied).
+ */
 function upgradeStatus(origin: string, path: string): Promise<number> {
   return new Promise((resolve, reject) => {
     const req = request(`${origin}${path}`, {
