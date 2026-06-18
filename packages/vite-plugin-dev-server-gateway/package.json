@@ -54,7 +54,7 @@
     "build": "vp pack"
   },
   "dependencies": {
-    "gunshi": "0.34.0"
+    "gunshi": "0.35.1"
   },
   "devDependencies": {
     "@arethetypeswrong/core": "catalog:dev",
