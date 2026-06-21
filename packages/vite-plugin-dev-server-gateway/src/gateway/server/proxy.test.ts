@@ -130,19 +130,25 @@ describe("proxyHttp over an HTTP/2 gateway", () => {
 
     const client = http2Connect(`http://127.0.0.1:${gatewayPort}`);
     try {
-      const result = await new Promise<{ body: string; status: number }>((resolve, reject) => {
+      const result = await new Promise<{
+        body: string;
+        connection: string | undefined;
+        status: number;
+      }>((resolve, reject) => {
         const req = client.request({ ":path": "/preview/app/" });
         let status = 0;
+        let connection: string | undefined;
         let body = "";
         req.on("response", (headers) => {
           status = Number(headers[":status"] ?? 0);
+          connection = headers["connection"] as string | undefined;
         });
         req.setEncoding("utf8");
         req.on("data", (chunk: string) => {
           body += chunk;
         });
         req.on("end", () => {
-          resolve({ body, status });
+          resolve({ body, connection, status });
         });
         req.on("error", reject);
         req.end();
@@ -150,6 +156,9 @@ describe("proxyHttp over an HTTP/2 gateway", () => {
 
       expect(result.status).toBe(200);
       expect(result.body).toBe("hello from preview");
+      // The hop-by-hop `connection` header the downstream set must be stripped from the client
+      // response, not just implicitly dropped by the HTTP/2 layer rejecting it.
+      expect(result.connection).toBeUndefined();
       // The downstream HTTP/1.1 server must not receive HTTP/2 pseudo-headers (`:authority`, …).
       expect(Object.keys(receivedHeaders).some((key) => key.startsWith(":"))).toBe(false);
     } finally {
