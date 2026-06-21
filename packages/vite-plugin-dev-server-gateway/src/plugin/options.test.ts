@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vite-plus/test";
 
 import type { Instance } from "../instance";
-import { resolveOptions } from "./options";
+import { resolvePluginOptions } from "./options";
 
 describe("resolveOptions", () => {
   it("applies the mount path and port range defaults", () => {
-    const resolved = resolveOptions({});
+    const resolved = resolvePluginOptions({});
 
     expect(resolved.mountPath).toBe("/preview");
     expect(resolved.portRange).toEqual([53_000, 53_999]);
@@ -19,10 +19,10 @@ describe("resolveOptions", () => {
       port: 53_001,
     };
 
-    expect(resolveOptions({ instance }).instance).toBe(instance);
+    expect(resolvePluginOptions({ instance }).instance).toBe(instance);
   });
 
   it("has no instance for the gateway role", () => {
-    expect(resolveOptions({}).instance).toBeUndefined();
+    expect(resolvePluginOptions({}).instance).toBeUndefined();
   });
 });
