@@ -81,11 +81,22 @@ export async function handleControlRequest(
  * registry change, so the index page and DevTools tab refresh on updates alone (no polling).
  */
 function handleEvents(req: IncomingMessage, res: ServerResponse, deps: ControlDeps): void {
+  // `X-Accel-Buffering: no` opts the stream out of proxy response buffering (nginx and most reverse
+  // proxies honour it). A common HTTPS dev setup puts a TLS-terminating reverse proxy in front of the
+  // plain-HTTP dev server; without this header the proxy buffers the long-lived stream and never
+  // forwards a frame, so the browser's EventSource hangs and cancels after a timeout. `/config` works
+  // through the same proxy only because it is a short response that ends immediately.
+  //
+  // No `Connection: keep-alive` header: it is the HTTP/1.1 default anyway, and HTTP/2 (which Vite uses
+  // when the dev server itself serves HTTPS) forbids connection-specific headers (RFC 9113 §8.2.2) —
+  // Node's http2 compat layer drops it with a warning, so setting it is pointless noise.
   res.writeHead(200, {
     "cache-control": "no-cache",
-    connection: "keep-alive",
     "content-type": "text/event-stream",
+    "x-accel-buffering": "no",
   });
+  // Flush the head before the first frame so the proxy and the browser commit to the stream up front.
+  res.flushHeaders();
 
   const send = (entries: RegistryEntry[]): void => {
     res.write(`data: ${JSON.stringify(entries)}\n\n`);
