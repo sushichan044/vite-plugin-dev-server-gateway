@@ -3,11 +3,10 @@ import { cli, define } from "gunshi";
 
 import { detectShell } from "./cli/detect-shell";
 import type { Shell } from "./cli/shell-env";
-import { formatShellEnv } from "./cli/shell-env";
+import { formatShellEnv, SHELLS } from "./cli/shell-env";
 import { buildInstanceEnv, resolveInstance } from "./instance";
 
 const BIN_NAME = "vite-plugin-dev-server-gateway";
-const SHELLS = ["bash", "zsh", "fish", "powershell"] as const;
 
 function isShell(value: string | undefined): value is Shell {
   return value !== undefined && (SHELLS as readonly string[]).includes(value);

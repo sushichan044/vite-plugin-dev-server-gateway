@@ -34,14 +34,14 @@ export function proxyHttp(
 ): void {
   const proxyReq = httpRequest(
     {
-      headers: forwardableRequestHeaders(req.headers),
+      headers: filterHeaders(req.headers, true),
       host: LOOPBACK,
       method: req.method,
       path: req.url,
       port: entry.port,
     },
     (proxyRes) => {
-      res.writeHead(proxyRes.statusCode ?? 502, stripHopByHop(proxyRes.headers));
+      res.writeHead(proxyRes.statusCode ?? 502, filterHeaders(proxyRes.headers, false));
       proxyRes.pipe(res);
     },
   );
@@ -50,29 +50,17 @@ export function proxyHttp(
 }
 
 /**
- * Drop hop-by-hop headers plus the HTTP/2 pseudo-headers (`:authority`, `:path`, …) that the http2
- * compat layer leaves in `req.headers`: those `:`-prefixed names are invalid HTTP/1.1 header tokens
- * and the downstream instance speaks HTTP/1.1.
+ * Drop hop-by-hop headers before a request/response crosses the proxy. Set `dropPseudo` for
+ * requests to also strip the HTTP/2 pseudo-headers (`:authority`, `:path`, …) the http2 compat
+ * layer leaves in `req.headers`: those `:`-prefixed names are invalid HTTP/1.1 header tokens and
+ * the downstream instance speaks HTTP/1.1. Responses keep `dropPseudo` off — there are no
+ * pseudo-headers to remove on the way back, only hop-by-hop ones the (possibly HTTP/2) client
+ * connection forbids.
  */
-function forwardableRequestHeaders(headers: IncomingHttpHeaders): IncomingHttpHeaders {
+function filterHeaders(headers: IncomingHttpHeaders, dropPseudo: boolean): IncomingHttpHeaders {
   const forwarded: IncomingHttpHeaders = {};
   for (const [key, value] of Object.entries(headers)) {
-    if (key.startsWith(":") || HOP_BY_HOP.has(key)) {
-      continue;
-    }
-    forwarded[key] = value;
-  }
-  return forwarded;
-}
-
-/**
- * Drop hop-by-hop headers from a downstream response before it is written to the (possibly HTTP/2)
- * client connection.
- */
-function stripHopByHop(headers: IncomingHttpHeaders): IncomingHttpHeaders {
-  const forwarded: IncomingHttpHeaders = {};
-  for (const [key, value] of Object.entries(headers)) {
-    if (HOP_BY_HOP.has(key)) {
+    if (HOP_BY_HOP.has(key) || (dropPseudo && key.startsWith(":"))) {
       continue;
     }
     forwarded[key] = value;

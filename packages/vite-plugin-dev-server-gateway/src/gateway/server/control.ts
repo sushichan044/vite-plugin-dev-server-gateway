@@ -2,7 +2,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 
 import { CONTROL_PREFIX, NAME_PATTERN } from "../../constants";
 import { isCanonicalBase } from "../../utils";
-import { isPortInRange } from "../dispatch";
+import { isPortInRange, stripQuery } from "../dispatch";
 import type { Registry } from "../registry";
 import type { RegisterPayload, RegistryEntry } from "../types";
 import type { GatewayInfo } from "../types";
@@ -33,8 +33,7 @@ export async function handleControlRequest(
   res: ServerResponse,
   deps: ControlDeps,
 ): Promise<boolean> {
-  const url = req.url ?? "";
-  const pathname = url.split("?", 1)[0] ?? url;
+  const pathname = stripQuery(req.url ?? "");
   if (pathname !== CONTROL_PREFIX && !pathname.startsWith(`${CONTROL_PREFIX}/`)) {
     return false;
   }
@@ -143,8 +142,9 @@ async function handleDeregister(
     return;
   }
 
-  const name = extractName(body);
-  if (name !== undefined) {
+  const record = typeof body === "object" && body !== null ? (body as Record<string, unknown>) : {};
+  const name = record["name"];
+  if (typeof name === "string") {
     deps.registry.remove(name);
   }
   // Idempotent: deregistering an unknown name is still a success.
@@ -178,14 +178,6 @@ function parsePayload(body: unknown, range: readonly [number, number]): ParseRes
   }
 
   return { ok: true, payload: { base, branch, name, port } };
-}
-
-function extractName(body: unknown): string | undefined {
-  if (typeof body !== "object" || body === null) {
-    return undefined;
-  }
-  const name = (body as Record<string, unknown>)["name"];
-  return typeof name === "string" ? name : undefined;
 }
 
 function readJson(req: IncomingMessage): Promise<unknown> {

@@ -59,6 +59,8 @@ function cell(text: string, className?: string): HTMLTableCellElement {
   return td;
 }
 
+// Mirrors the inline renderer in gateway/server/index-page.ts: both build the same table from the
+// /events payload, so a column or markup change here must be made there too.
 function rowFor(entry: ListEntry): HTMLTableRowElement {
   const href = entry.base;
   const tr = document.createElement("tr");
