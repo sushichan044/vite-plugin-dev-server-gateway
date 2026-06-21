@@ -129,6 +129,8 @@ export function renderIndexHtml(gateway: GatewayInfo | null, previews: RegistryE
   </section>
   <script>
     (() => {
+      // Mirrors the DevTools panel renderer in devtools-client.ts (rowFor/link/cell + the SSE wiring):
+      // both consume the same /events payload, so a column or markup change here must be made there too.
       // Only the "Previews" list is live; the "Gateway" section is server-rendered once and never changes.
       const instanceBody = document.getElementById("rows-instance");
       const count = document.getElementById("count");

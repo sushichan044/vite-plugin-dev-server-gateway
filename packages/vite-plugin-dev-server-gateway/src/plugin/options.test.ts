@@ -25,4 +25,21 @@ describe("resolveOptions", () => {
   it("has no instance for the gateway role", () => {
     expect(resolveOptions({}).instance).toBeUndefined();
   });
+
+  it("accepts a custom non-root mount path", () => {
+    expect(resolveOptions({ mountPath: "/app" }).mountPath).toBe("/app");
+  });
+
+  it("rejects a mount path that is not a non-root absolute path", () => {
+    // "/" collapses to an empty dispatch prefix that would match every request path.
+    expect(() => resolveOptions({ mountPath: "/" })).toThrow();
+    expect(() => resolveOptions({ mountPath: "//host" })).toThrow();
+    expect(() => resolveOptions({ mountPath: "preview" })).toThrow();
+  });
+
+  it("rejects a mount path carrying a query or fragment", () => {
+    // Request pathnames are matched with their query stripped, so a "?"/"#" prefix never matches.
+    expect(() => resolveOptions({ mountPath: "/preview?x=1" })).toThrow();
+    expect(() => resolveOptions({ mountPath: "/preview#frag" })).toThrow();
+  });
 });

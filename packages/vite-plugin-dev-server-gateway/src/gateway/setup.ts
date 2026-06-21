@@ -47,10 +47,8 @@ export function setupGateway(
   // from here rather than the registry, so an instance can never collide with or evict it.
   // `gatewayInfoReady` lets the index handler wait out the brief startup window before first render.
   let gatewayInfo: GatewayInfo | null = null;
-  let markGatewayInfoReady = (): void => {};
-  const gatewayInfoReady = new Promise<void>((resolve) => {
-    markGatewayInfoReady = resolve;
-  });
+  const { promise: gatewayInfoReady, resolve: markGatewayInfoReady } =
+    Promise.withResolvers<void>();
   if (server.httpServer) {
     server.httpServer.once("listening", () => {
       gatewayInfo = buildGatewayInfo(server);
@@ -59,7 +57,6 @@ export function setupGateway(
   } else {
     markGatewayInfoReady();
   }
-  const getGatewayInfo = (): GatewayInfo | null => gatewayInfo;
 
   // Added in the hook body so it runs before Vite's internal middlewares (SPA fallback etc.),
   // letting dispatch paths reach the proxy instead of being swallowed by Vite.
@@ -68,7 +65,12 @@ export function setupGateway(
       const url = req.url ?? "";
 
       if (
-        await handleControlRequest(req, res, { getGatewayInfo, mountPath, portRange, registry })
+        await handleControlRequest(req, res, {
+          getGatewayInfo: () => gatewayInfo,
+          mountPath,
+          portRange,
+          registry,
+        })
       ) {
         return;
       }
@@ -77,7 +79,7 @@ export function setupGateway(
         // Wait out the startup window so the first render already includes the gateway.
         await gatewayInfoReady;
         res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
-        res.end(renderIndexHtml(getGatewayInfo(), registry.list()));
+        res.end(renderIndexHtml(gatewayInfo, registry.list()));
         return;
       }
 

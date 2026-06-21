@@ -35,6 +35,12 @@ describe("deriveName", () => {
     expect(() => deriveName("not a slug!", "label")).toThrow(InvalidNameError);
   });
 
+  it("rejects explicit names with leading/trailing dashes or only dashes", () => {
+    expect(() => deriveName("-abc", "label")).toThrow(InvalidNameError);
+    expect(() => deriveName("abc-", "label")).toThrow(InvalidNameError);
+    expect(() => deriveName("--", "label")).toThrow(InvalidNameError);
+  });
+
   it("throws when the label slugifies to nothing", () => {
     expect(() => deriveName(undefined, "///")).toThrow(InvalidNameError);
   });

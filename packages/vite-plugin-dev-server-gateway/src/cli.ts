@@ -3,14 +3,34 @@ import { cli, define } from "gunshi";
 
 import { detectShell } from "./cli/detect-shell";
 import type { Shell } from "./cli/shell-env";
-import { formatShellEnv } from "./cli/shell-env";
+import { formatShellEnv, SHELLS } from "./cli/shell-env";
 import { buildInstanceEnv, resolveInstance } from "./instance";
 
 const BIN_NAME = "vite-plugin-dev-server-gateway";
-const SHELLS = ["bash", "zsh", "fish", "powershell"] as const;
 
 function isShell(value: string | undefined): value is Shell {
   return value !== undefined && (SHELLS as readonly string[]).includes(value);
+}
+
+// Highest valid TCP port. Bounding here keeps `net.Server.listen` from throwing a RangeError on an
+// out-of-range value and stops a typo like `53000-999999` from blowing the probe span wide open.
+const MAX_PORT = 65_535;
+
+/**
+ * Parse a `MIN-MAX` port range, returning `undefined` unless both ends are valid TCP ports
+ * (1–65535) with `min <= max`.
+ */
+function parsePortRange(value: string): [number, number] | undefined {
+  const match = /^(\d+)-(\d+)$/.exec(value);
+  if (match === null) {
+    return undefined;
+  }
+  const min = Number(match[1]);
+  const max = Number(match[2]);
+  if (min <= 0 || max > MAX_PORT || max < min) {
+    return undefined;
+  }
+  return [min, max];
 }
 
 const envCommand = define({
@@ -40,6 +60,12 @@ const envCommand = define({
       description: "Explicit URL slug (default: the key strategy label)",
       type: "string",
     },
+    portRange: {
+      description:
+        "Port range the gateway accepts, as MIN-MAX (default: 53000-53999, must match the plugin)",
+      toKebab: true,
+      type: "string",
+    },
     shell: {
       description: `Target shell: ${SHELLS.join(" | ")} | auto (detect from the environment)`,
       required: true,
@@ -53,7 +79,7 @@ const envCommand = define({
   // both renders them and throws, printing twice).
   rendering: { header: null, validationErrors: null },
   run: async (ctx) => {
-    const { cwd, gatewayOrigin, keyStrategy, mountPath, name, shell } = ctx.values;
+    const { cwd, gatewayOrigin, keyStrategy, mountPath, name, portRange, shell } = ctx.values;
     const target = shell === "auto" ? detectShell(process.env) : shell;
     if (!isShell(target)) {
       const reason =
@@ -65,7 +91,27 @@ const envCommand = define({
       return;
     }
 
-    const instance = await resolveInstance({ cwd, keyStrategy, mountPath, name });
+    // Forward the range so the probed port lands inside the gateway's accepted range (D5). Without
+    // this a non-default plugin portRange would silently get a port the gateway rejects.
+    let resolvedRange: [number, number] | undefined;
+    if (portRange !== undefined) {
+      resolvedRange = parsePortRange(portRange);
+      if (resolvedRange === undefined) {
+        process.stderr.write(
+          `Invalid --port-range "${portRange}". Expected MIN-MAX, e.g. 53000-53999.\n`,
+        );
+        process.exitCode = 1;
+        return;
+      }
+    }
+
+    const instance = await resolveInstance({
+      cwd,
+      keyStrategy,
+      mountPath,
+      name,
+      portRange: resolvedRange,
+    });
     const pairs = buildInstanceEnv({ gatewayOrigin, instance });
     process.stdout.write(`${formatShellEnv(target, pairs)}\n`);
   },

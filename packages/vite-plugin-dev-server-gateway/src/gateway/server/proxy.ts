@@ -34,14 +34,14 @@ export function proxyHttp(
 ): void {
   const proxyReq = httpRequest(
     {
-      headers: forwardableRequestHeaders(req.headers),
+      headers: filterHeaders(req.headers, true),
       host: LOOPBACK,
       method: req.method,
       path: req.url,
       port: entry.port,
     },
     (proxyRes) => {
-      res.writeHead(proxyRes.statusCode ?? 502, stripHopByHop(proxyRes.headers));
+      res.writeHead(proxyRes.statusCode ?? 502, filterHeaders(proxyRes.headers, false));
       proxyRes.pipe(res);
     },
   );
@@ -50,29 +50,17 @@ export function proxyHttp(
 }
 
 /**
- * Drop hop-by-hop headers plus the HTTP/2 pseudo-headers (`:authority`, `:path`, …) that the http2
- * compat layer leaves in `req.headers`: those `:`-prefixed names are invalid HTTP/1.1 header tokens
- * and the downstream instance speaks HTTP/1.1.
+ * Drop hop-by-hop headers before a request/response crosses the proxy. Set `dropPseudo` for
+ * requests to also strip the HTTP/2 pseudo-headers (`:authority`, `:path`, …) the http2 compat
+ * layer leaves in `req.headers`: those `:`-prefixed names are invalid HTTP/1.1 header tokens and
+ * the downstream instance speaks HTTP/1.1. Responses keep `dropPseudo` off — there are no
+ * pseudo-headers to remove on the way back, only hop-by-hop ones the (possibly HTTP/2) client
+ * connection forbids.
  */
-function forwardableRequestHeaders(headers: IncomingHttpHeaders): IncomingHttpHeaders {
+function filterHeaders(headers: IncomingHttpHeaders, dropPseudo: boolean): IncomingHttpHeaders {
   const forwarded: IncomingHttpHeaders = {};
   for (const [key, value] of Object.entries(headers)) {
-    if (key.startsWith(":") || HOP_BY_HOP.has(key)) {
-      continue;
-    }
-    forwarded[key] = value;
-  }
-  return forwarded;
-}
-
-/**
- * Drop hop-by-hop headers from a downstream response before it is written to the (possibly HTTP/2)
- * client connection.
- */
-function stripHopByHop(headers: IncomingHttpHeaders): IncomingHttpHeaders {
-  const forwarded: IncomingHttpHeaders = {};
-  for (const [key, value] of Object.entries(headers)) {
-    if (HOP_BY_HOP.has(key)) {
+    if (HOP_BY_HOP.has(key) || (dropPseudo && key.startsWith(":"))) {
       continue;
     }
     forwarded[key] = value;
@@ -105,9 +93,13 @@ export function proxyWs(
     target.pipe(socket);
   });
 
+  // Tear both halves down together: a failure on either side leaves the other end's socket/fd open
+  // otherwise. onError (target side) writes the 502 and destroys the client socket; a client-side
+  // error just destroys the target — the client socket is already broken.
   target.on("error", onError);
   socket.on("error", () => {
     target.destroy();
+    socket.destroy();
   });
 }
 
@@ -133,9 +125,13 @@ function serializeRequestHead(
  * Send a readable 502 telling the user which preview isn't running.
  */
 export function send502(res: ServerResponse, name: string): void {
-  if (!res.headersSent) {
-    res.writeHead(502, { "content-type": "text/plain; charset=utf-8" });
+  if (res.headersSent) {
+    // The downstream already streamed part of a response before it failed; appending the 502 text
+    // would corrupt that body, so abort the connection instead of writing onto a committed response.
+    res.destroy();
+    return;
   }
+  res.writeHead(502, { "content-type": "text/plain; charset=utf-8" });
   res.end(`Preview '${name}' is not running`);
 }
 

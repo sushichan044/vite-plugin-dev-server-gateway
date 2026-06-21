@@ -5,9 +5,24 @@
  * The instance serves under its own `base` (e.g. `/preview/<name>/`), so the matched URL is later
  * forwarded verbatim — this only needs to read the name to look up the port. See D5.
  */
+/**
+ * The pathname of a request URL, with any `?query` removed.
+ */
+export function stripQuery(url: string): string {
+  const queryAt = url.indexOf("?");
+  return queryAt === -1 ? url : url.slice(0, queryAt);
+}
+
+/**
+ * The mount path with trailing slashes trimmed, used as the dispatch/index prefix.
+ */
+function toPrefix(mountPath: string): string {
+  return mountPath.replace(/\/+$/, "");
+}
+
 export function matchInstanceName(url: string, mountPath: string): string | null {
-  const prefix = mountPath.replace(/\/+$/, "");
-  const pathname = url.split("?", 1)[0] ?? url;
+  const prefix = toPrefix(mountPath);
+  const pathname = stripQuery(url);
 
   if (!pathname.startsWith(`${prefix}/`)) {
     return null;
@@ -28,8 +43,8 @@ export function matchInstanceName(url: string, mountPath: string): string | null
  * True when the request URL targets the index page (`${mountPath}` or `${mountPath}/`).
  */
 export function isIndexPath(url: string, mountPath: string): boolean {
-  const prefix = mountPath.replace(/\/+$/, "");
-  const pathname = url.split("?", 1)[0] ?? url;
+  const prefix = toPrefix(mountPath);
+  const pathname = stripQuery(url);
   return pathname === prefix || pathname === `${prefix}/`;
 }
 
