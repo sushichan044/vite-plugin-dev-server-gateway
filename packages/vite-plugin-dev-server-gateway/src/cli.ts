@@ -12,8 +12,13 @@ function isShell(value: string | undefined): value is Shell {
   return value !== undefined && (SHELLS as readonly string[]).includes(value);
 }
 
+// Highest valid TCP port. Bounding here keeps `net.Server.listen` from throwing a RangeError on an
+// out-of-range value and stops a typo like `53000-999999` from blowing the probe span wide open.
+const MAX_PORT = 65_535;
+
 /**
- * Parse a `MIN-MAX` port range, returning `undefined` when malformed or when `max < min`.
+ * Parse a `MIN-MAX` port range, returning `undefined` unless both ends are valid TCP ports
+ * (1–65535) with `min <= max`.
  */
 function parsePortRange(value: string): [number, number] | undefined {
   const match = /^(\d+)-(\d+)$/.exec(value);
@@ -22,7 +27,7 @@ function parsePortRange(value: string): [number, number] | undefined {
   }
   const min = Number(match[1]);
   const max = Number(match[2]);
-  if (min <= 0 || max < min) {
+  if (min <= 0 || max > MAX_PORT || max < min) {
     return undefined;
   }
   return [min, max];

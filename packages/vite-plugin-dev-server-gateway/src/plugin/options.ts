@@ -60,13 +60,15 @@ export interface ResolvedGatewayOptions {
 
 export function resolveOptions(options: DevServerGatewayOptions): ResolvedGatewayOptions {
   const mountPath = options.mountPath ?? DEFAULT_MOUNT_PATH;
-  // mountPath becomes the dispatch prefix (trailing slashes trimmed). "/" — or any all-slash value —
-  // collapses to "" and would make every request path look like a dispatch target, so require a
-  // non-root, non-protocol-relative absolute path.
+  // mountPath becomes the dispatch prefix (trailing slashes trimmed) and is compared against request
+  // pathnames whose query/fragment are already stripped. "/" — or any all-slash value — collapses to
+  // "" and matches every path; a "?"/"#" in the prefix can never match a stripped pathname, silently
+  // breaking routing. Require a non-root, non-protocol-relative, query/fragment-free absolute path.
   if (
     !mountPath.startsWith("/") ||
     mountPath.startsWith("//") ||
-    mountPath.replace(/\/+$/, "") === ""
+    mountPath.replace(/\/+$/, "") === "" ||
+    /[?#]/.test(mountPath)
   ) {
     throw new Error(
       `Invalid mountPath ${JSON.stringify(mountPath)}: expected a non-root absolute path such as "/preview".`,

@@ -102,33 +102,38 @@ describe("send502", () => {
     const port = await listen(
       createServer((_req, res) => {
         res.writeHead(200, { "content-type": "text/plain" });
-        res.write("streamed-body");
-        // The downstream failed mid-stream: headers and part of the body are already on the wire,
-        // so appending the 502 text would corrupt the response. send502 must abort instead.
-        send502(res, "app");
+        // Run the failure path only after the first chunk has flushed, so the response is genuinely
+        // mid-stream (headers + body already committed) rather than failing before anything is sent.
+        res.write("streamed-body", () => {
+          send502(res, "app");
+        });
       }),
     );
 
-    const body = await new Promise<string>((resolve) => {
+    const { body, status } = await new Promise<{ body: string; status: number }>((resolve) => {
       const req = httpRequest(`http://127.0.0.1:${port}/`, (res) => {
         let received = "";
+        const done = (): void => {
+          resolve({ body: received, status: res.statusCode ?? 0 });
+        };
         res.setEncoding("utf8");
         res.on("data", (chunk: string) => {
           received += chunk;
         });
-        res.on("end", () => {
-          resolve(received);
-        });
-        res.on("close", () => {
-          resolve(received);
-        });
+        res.on("end", done);
+        res.on("close", done);
+        res.on("error", done);
       });
       req.on("error", () => {
-        resolve("");
+        resolve({ body: "", status: 0 });
       });
       req.end();
     });
 
+    // The response was committed as 200 before the failure — proving the mid-stream path ran, not a
+    // pre-headers connection error (which would yield status 0). The 502 text must never have been
+    // appended onto that already-committed body.
+    expect(status).toBe(200);
     expect(body).not.toContain("Preview 'app' is not running");
   });
 });
