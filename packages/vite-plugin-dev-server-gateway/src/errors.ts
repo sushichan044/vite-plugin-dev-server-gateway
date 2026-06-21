@@ -13,7 +13,9 @@ export class PortRangeExhaustedError extends Error {
  */
 export class InvalidNameError extends Error {
   constructor(value: string) {
-    super(`Invalid preview name: ${JSON.stringify(value)} (must match /^[a-z0-9-]+$/i)`);
+    super(
+      `Invalid preview name: ${JSON.stringify(value)} (must match /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/i)`,
+    );
     this.name = "InvalidNameError";
   }
 }

@@ -70,6 +70,9 @@ const withGitRepo = test.extend<{ repoDir: string }>({
     execFileSync("git", ["init", "-b", "main"], { cwd: dir });
     execFileSync("git", ["config", "user.email", "test@example.com"], { cwd: dir });
     execFileSync("git", ["config", "user.name", "Test"], { cwd: dir });
+    // Never sign this throwaway commit: inheriting a developer's global `commit.gpgsign` (e.g. an SSH
+    // signer backed by 1Password) makes the fixture depend on their agent and hang/fail in CI.
+    execFileSync("git", ["config", "commit.gpgsign", "false"], { cwd: dir });
     execFileSync("git", ["commit", "--allow-empty", "-m", "init"], { cwd: dir });
     await use(dir);
     rmSync(dir, { recursive: true, force: true });

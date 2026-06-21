@@ -38,7 +38,11 @@ export const GATEWAY_ORIGIN_ENV = ENV_KEYS.origin;
 export function instanceFromEnv(env: NodeJS.ProcessEnv = process.env): Instance | undefined {
   const name = env[ENV_KEYS.name];
   const base = env[ENV_KEYS.base];
-  const port = Number(env[ENV_KEYS.port]);
+  // Decimal-only: `Number` would otherwise accept exponential/hex/whitespace forms ("1e3" -> 1000,
+  // "0x10" -> 16, " 53000 ") that a hand-written launch script could leak in. The env is a boundary,
+  // so a malformed port must yield `undefined` (run as the gateway), not a surprising bind.
+  const rawPort = env[ENV_KEYS.port];
+  const port = rawPort !== undefined && /^\d+$/.test(rawPort) ? Number(rawPort) : Number.NaN;
   if (!name || !base || !Number.isInteger(port) || port <= 0) {
     return undefined;
   }

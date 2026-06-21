@@ -20,6 +20,7 @@ export const DEFAULT_HEARTBEAT_MS = 5000;
 export const DEFAULT_STALE_MS = 15000;
 
 /**
- * A valid preview name (URL slug).
+ * A valid preview name (URL slug): alphanumerics separated by single or grouped dashes, with no
+ * leading or trailing dash (so `--` and `-abc` are rejected, not just non-slug characters).
  */
-export const NAME_PATTERN = /^[a-z0-9-]+$/i;
+export const NAME_PATTERN = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/i;

@@ -93,9 +93,13 @@ export function proxyWs(
     target.pipe(socket);
   });
 
+  // Tear both halves down together: a failure on either side leaves the other end's socket/fd open
+  // otherwise. onError (target side) writes the 502 and destroys the client socket; a client-side
+  // error just destroys the target — the client socket is already broken.
   target.on("error", onError);
   socket.on("error", () => {
     target.destroy();
+    socket.destroy();
   });
 }
 
@@ -121,9 +125,13 @@ function serializeRequestHead(
  * Send a readable 502 telling the user which preview isn't running.
  */
 export function send502(res: ServerResponse, name: string): void {
-  if (!res.headersSent) {
-    res.writeHead(502, { "content-type": "text/plain; charset=utf-8" });
+  if (res.headersSent) {
+    // The downstream already streamed part of a response before it failed; appending the 502 text
+    // would corrupt that body, so abort the connection instead of writing onto a committed response.
+    res.destroy();
+    return;
   }
+  res.writeHead(502, { "content-type": "text/plain; charset=utf-8" });
   res.end(`Preview '${name}' is not running`);
 }
 

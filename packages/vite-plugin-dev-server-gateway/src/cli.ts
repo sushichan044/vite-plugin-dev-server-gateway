@@ -12,6 +12,22 @@ function isShell(value: string | undefined): value is Shell {
   return value !== undefined && (SHELLS as readonly string[]).includes(value);
 }
 
+/**
+ * Parse a `MIN-MAX` port range, returning `undefined` when malformed or when `max < min`.
+ */
+function parsePortRange(value: string): [number, number] | undefined {
+  const match = /^(\d+)-(\d+)$/.exec(value);
+  if (match === null) {
+    return undefined;
+  }
+  const min = Number(match[1]);
+  const max = Number(match[2]);
+  if (min <= 0 || max < min) {
+    return undefined;
+  }
+  return [min, max];
+}
+
 const envCommand = define({
   args: {
     cwd: {
@@ -39,6 +55,12 @@ const envCommand = define({
       description: "Explicit URL slug (default: the key strategy label)",
       type: "string",
     },
+    portRange: {
+      description:
+        "Port range the gateway accepts, as MIN-MAX (default: 53000-53999, must match the plugin)",
+      toKebab: true,
+      type: "string",
+    },
     shell: {
       description: `Target shell: ${SHELLS.join(" | ")} | auto (detect from the environment)`,
       required: true,
@@ -52,7 +74,7 @@ const envCommand = define({
   // both renders them and throws, printing twice).
   rendering: { header: null, validationErrors: null },
   run: async (ctx) => {
-    const { cwd, gatewayOrigin, keyStrategy, mountPath, name, shell } = ctx.values;
+    const { cwd, gatewayOrigin, keyStrategy, mountPath, name, portRange, shell } = ctx.values;
     const target = shell === "auto" ? detectShell(process.env) : shell;
     if (!isShell(target)) {
       const reason =
@@ -64,7 +86,27 @@ const envCommand = define({
       return;
     }
 
-    const instance = await resolveInstance({ cwd, keyStrategy, mountPath, name });
+    // Forward the range so the probed port lands inside the gateway's accepted range (D5). Without
+    // this a non-default plugin portRange would silently get a port the gateway rejects.
+    let resolvedRange: [number, number] | undefined;
+    if (portRange !== undefined) {
+      resolvedRange = parsePortRange(portRange);
+      if (resolvedRange === undefined) {
+        process.stderr.write(
+          `Invalid --port-range "${portRange}". Expected MIN-MAX, e.g. 53000-53999.\n`,
+        );
+        process.exitCode = 1;
+        return;
+      }
+    }
+
+    const instance = await resolveInstance({
+      cwd,
+      keyStrategy,
+      mountPath,
+      name,
+      portRange: resolvedRange,
+    });
     const pairs = buildInstanceEnv({ gatewayOrigin, instance });
     process.stdout.write(`${formatShellEnv(target, pairs)}\n`);
   },

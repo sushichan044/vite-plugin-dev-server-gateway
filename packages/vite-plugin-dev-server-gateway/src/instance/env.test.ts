@@ -55,6 +55,14 @@ describe("instanceFromEnv", () => {
   it("returns undefined when the port is not a positive integer", () => {
     expect(instanceFromEnv({ ...baseEnv, VITE_DEV_SERVER_GATEWAY_PORT: "nope" })).toBeUndefined();
   });
+
+  it("rejects non-decimal port forms the env boundary should not coerce", () => {
+    expect(instanceFromEnv({ ...baseEnv, VITE_DEV_SERVER_GATEWAY_PORT: "1e3" })).toBeUndefined();
+    expect(instanceFromEnv({ ...baseEnv, VITE_DEV_SERVER_GATEWAY_PORT: "0x10" })).toBeUndefined();
+    expect(
+      instanceFromEnv({ ...baseEnv, VITE_DEV_SERVER_GATEWAY_PORT: " 53000 " }),
+    ).toBeUndefined();
+  });
 });
 
 function makeInstance(overrides: Partial<Instance> = {}): Instance {

@@ -59,12 +59,26 @@ export interface ResolvedGatewayOptions {
 }
 
 export function resolveOptions(options: DevServerGatewayOptions): ResolvedGatewayOptions {
+  const mountPath = options.mountPath ?? DEFAULT_MOUNT_PATH;
+  // mountPath becomes the dispatch prefix (trailing slashes trimmed). "/" — or any all-slash value —
+  // collapses to "" and would make every request path look like a dispatch target, so require a
+  // non-root, non-protocol-relative absolute path.
+  if (
+    !mountPath.startsWith("/") ||
+    mountPath.startsWith("//") ||
+    mountPath.replace(/\/+$/, "") === ""
+  ) {
+    throw new Error(
+      `Invalid mountPath ${JSON.stringify(mountPath)}: expected a non-root absolute path such as "/preview".`,
+    );
+  }
+
   return {
     devtools: options.devtools ?? true,
     gatewayOrigin: options.gatewayOrigin ?? process.env[GATEWAY_ORIGIN_ENV],
     heartbeatMs: options.heartbeatMs ?? DEFAULT_HEARTBEAT_MS,
     instance: options.instance,
-    mountPath: options.mountPath ?? DEFAULT_MOUNT_PATH,
+    mountPath,
     portRange: options.portRange ?? DEFAULT_PORT_RANGE,
     staleMs: options.staleMs ?? DEFAULT_STALE_MS,
   };

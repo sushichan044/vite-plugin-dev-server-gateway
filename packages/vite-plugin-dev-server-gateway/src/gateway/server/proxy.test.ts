@@ -1,5 +1,5 @@
 import type { IncomingHttpHeaders, IncomingMessage, Server, ServerResponse } from "node:http";
-import { createServer } from "node:http";
+import { createServer, request as httpRequest } from "node:http";
 import type { Http2Server } from "node:http2";
 import { connect as http2Connect, createServer as createHttp2Server } from "node:http2";
 
@@ -94,6 +94,42 @@ describe("proxyHttp", () => {
     expect(res.status).toBe(502);
     await expect(res.text()).resolves.toContain("Preview 'app' is not running");
     expect(registry.get("app")).toBeUndefined();
+  });
+});
+
+describe("send502", () => {
+  it("does not append the 502 message to an already-committed response", async () => {
+    const port = await listen(
+      createServer((_req, res) => {
+        res.writeHead(200, { "content-type": "text/plain" });
+        res.write("streamed-body");
+        // The downstream failed mid-stream: headers and part of the body are already on the wire,
+        // so appending the 502 text would corrupt the response. send502 must abort instead.
+        send502(res, "app");
+      }),
+    );
+
+    const body = await new Promise<string>((resolve) => {
+      const req = httpRequest(`http://127.0.0.1:${port}/`, (res) => {
+        let received = "";
+        res.setEncoding("utf8");
+        res.on("data", (chunk: string) => {
+          received += chunk;
+        });
+        res.on("end", () => {
+          resolve(received);
+        });
+        res.on("close", () => {
+          resolve(received);
+        });
+      });
+      req.on("error", () => {
+        resolve("");
+      });
+      req.end();
+    });
+
+    expect(body).not.toContain("Preview 'app' is not running");
   });
 });
 
