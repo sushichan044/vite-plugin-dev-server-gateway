@@ -6,7 +6,7 @@ export const DEFAULT_MOUNT_PATH = "/preview";
 /**
  * Default port range: high and rarely contended; also bounds the dispatch security check (D5).
  */
-export const DEFAULT_PORT_RANGE: [number, number] = [53000, 53999];
+export const DEFAULT_PORT_RANGE = [53000, 53999] as const satisfies [number, number];
 
 /**
  * Fixed control path prefix, separate from the dispatch mount path.

@@ -4,8 +4,7 @@
 
 When you run several dev servers side by side — multiple apps in a monorepo, or the same app
 checked out into several git worktrees — you normally juggle a handful of `localhost` ports and
-guess which is which. This plugin puts all of them behind a single origin (`/preview/my-app/`,
-`/preview/other-app/`, …) and gives you one page that lists every running preview.
+guess which is which. This plugin puts all of them behind a single origin.
 
 Requires Vite `^7 || ^8` and Node `>=22.12`.
 
@@ -14,11 +13,10 @@ Requires Vite `^7 || ^8` and Node `>=22.12`.
 Install:
 
 ```bash
-npm install -D vite-plugin-dev-server-gateway
-# or: pnpm add -D vite-plugin-dev-server-gateway
+vp install -D vite-plugin-dev-server-gateway
 ```
 
-Add the plugin to every app's `vite.config.ts`.
+Add the plugin to `vite.config.ts`.
 
 ```ts
 // vite.config.ts
@@ -30,26 +28,22 @@ export default defineConfig({
 });
 ```
 
-`instanceFromEnv()` reads the standard env our CLI exports. To use your own env var names.
+`instanceFromEnv()` reads the standard env our CLI exports.
 
-Add an instance launch script to `package.json`. The CLI resolves the preview's identity into the
-environment _before_ Vite boots, so every config file Vite evaluates can see it:
+Then, add a script `dev:instance` to launch each preview instance.
 
 ```jsonc
 {
   "scripts": {
-    "dev:instance": "eval \"$(vite-plugin-dev-server-gateway env bash)\" && vite",
+    "dev": "vite",
+    "dev:instance": "eval \"$(vite-plugin-dev-server-gateway env auto)\" && vite",
   },
 }
 ```
 
-Now run the gateway once with a plain `vite`, start each preview with `pnpm dev:instance`, and open
-the gateway's origin at `/preview`. The page lists every running preview — name, git branch, port,
-and an "open in new tab" link — and updates over Server-Sent Events as servers come and go.
+Run `npm run dev` once to start the main dev server, and `npm run dev:instance` once for each preview instance.
 
-The single `devServerGateway()` plugin plays one of two roles, decided by the `instance` option:
-pass it to run as a preview _instance_ (the plugin wires `base`/`server.port` and registers with the
-gateway); omit it to run the _gateway_.
+After that, access `/preview` of the main dev server and you will see an index of every running preview, with links to open each in a new tab.
 
 ## Usage
 

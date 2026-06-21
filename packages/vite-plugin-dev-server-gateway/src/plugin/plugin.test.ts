@@ -51,7 +51,7 @@ describe("devServerGateway", () => {
 
   it("skips the DevTools dock when devtools is disabled", () => {
     const probe = fakeCtx();
-    devServerGateway({ devtools: false }).devtools?.setup(probe.ctx);
+    devServerGateway({ devTools: false }).devtools?.setup(probe.ctx);
 
     expect(probe.registered).toBe(0);
   });

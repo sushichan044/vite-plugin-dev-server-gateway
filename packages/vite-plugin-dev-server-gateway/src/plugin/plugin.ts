@@ -4,8 +4,8 @@ import type { Plugin, UserConfig } from "vite";
 import { Registry, setupDevtools, setupGateway } from "../gateway";
 import { setupInstance } from "../instance";
 import { isCanonicalBase } from "../utils";
-import type { DevServerGatewayOptions } from "./options";
-import { resolveOptions } from "./options";
+import type { DevServerGatewayPluginOptions } from "./options";
+import { resolvePluginOptions } from "./options";
 
 /**
  * The dev-server-gateway Vite plugin. One plugin, two roles (D1): a `gateway` serves the registry,
@@ -15,8 +15,8 @@ import { resolveOptions } from "./options";
  * The DevTools tab (D7) is additive: dispatch and the HTML index work without it. The `devtools`
  * hook only registers the tab for the gateway role when `devtools` is enabled.
  */
-export function devServerGateway(options: DevServerGatewayOptions = {}): Plugin {
-  const resolved = resolveOptions(options);
+export function devServerGateway(options: DevServerGatewayPluginOptions = {}): Plugin {
+  const resolved = resolvePluginOptions(options);
   const registry = new Registry();
   const { instance } = resolved;
 
@@ -52,7 +52,7 @@ export function devServerGateway(options: DevServerGatewayOptions = {}): Plugin 
     },
     devtools: {
       setup(ctx) {
-        if (instance === undefined && resolved.devtools) {
+        if (instance === undefined && resolved.devTools) {
           setupDevtools(ctx);
         }
       },

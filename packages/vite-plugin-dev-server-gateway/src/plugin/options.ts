@@ -10,7 +10,7 @@ import type { Instance } from "../instance";
 /**
  * Options for the `devServerGateway` plugin. All optional; defaults cover the common case.
  */
-export interface DevServerGatewayOptions {
+export interface DevServerGatewayPluginOptions {
   /**
    * The resolved instance this process serves. Provide it to run as an instance (the plugin wires
    * `base` / `server.port` and registers with the gateway); omit it to run the gateway. Build it
@@ -19,48 +19,64 @@ export interface DevServerGatewayOptions {
    */
   instance?: Instance;
   /**
-   * Must match the value used at resolve time. @default "/preview"
+   * Must match the value used at resolve time.
+   *
+   * @default "/preview"
    */
   mountPath?: string;
   /**
-   * Bounds the dispatch security check (D5). @default [53000, 53999]
+   * Avaiable port range for instances.
+   *
+   * @default [53000, 53999]
    */
   portRange?: [number, number];
   /**
-   * Where instances register. @default env VITE_DEV_SERVER_GATEWAY_ORIGIN, else the Vite server
-   * origin
+   * Where instances register.
+   *
+   * @default VITE_DEV_SERVER_GATEWAY_ORIGIN, else the Vite server origin
    */
   gatewayOrigin?: string;
   /**
-   * Heartbeat interval (ms). @default 5000
+   * Heartbeat interval (ms).
+   *
+   * @default 5000
    */
   heartbeatMs?: number;
   /**
-   * Eviction window (ms): a couple of missed beats. @default 15000
+   * Eviction window (ms): a couple of missed beats.
+   *
+   * @default 15000
    */
   staleMs?: number;
   /**
-   * Register a Vite DevTools tab for the registry (D7). @default true
+   * Enable integration with {@link https://devtools.vite.dev/ @vitejs/devtools}.
+   *
+   * `@vitejs/devtools` must be installed.
+   *
+   * @default true
    */
-  devtools?: boolean;
+  devTools?: boolean;
 }
 
 /**
- * {@link DevServerGatewayOptions} with defaults applied (except `gatewayOrigin`, resolved later).
+ * {@link DevServerGatewayPluginOptions} with defaults applied (except `gatewayOrigin`, resolved
+ * later).
  */
-export interface ResolvedGatewayOptions {
+export interface ResolvedDevServerGatewayPluginOptions {
   instance: Instance | undefined;
   mountPath: string;
   portRange: [number, number];
   gatewayOrigin: string | undefined;
   heartbeatMs: number;
   staleMs: number;
-  devtools: boolean;
+  devTools: boolean;
 }
 
-export function resolveOptions(options: DevServerGatewayOptions): ResolvedGatewayOptions {
+export function resolvePluginOptions(
+  options: DevServerGatewayPluginOptions,
+): ResolvedDevServerGatewayPluginOptions {
   return {
-    devtools: options.devtools ?? true,
+    devTools: options.devTools ?? true,
     gatewayOrigin: options.gatewayOrigin ?? process.env[GATEWAY_ORIGIN_ENV],
     heartbeatMs: options.heartbeatMs ?? DEFAULT_HEARTBEAT_MS,
     instance: options.instance,
