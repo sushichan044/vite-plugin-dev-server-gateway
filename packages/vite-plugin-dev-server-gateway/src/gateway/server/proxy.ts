@@ -10,6 +10,19 @@ import type { RegistryEntry } from "../types";
 // both ::1 and 127.0.0.1, so dispatch reaches the instance regardless of which loopback it bound.
 const LOOPBACK = "localhost";
 
+// HTTP/2 forbids these connection-specific (hop-by-hop) headers (RFC 9113 §8.2.2); Node's http2
+// compat layer throws ERR_HTTP2_INVALID_CONNECTION_HEADERS if they reach writeHead. Vite serves the
+// gateway over HTTP/2 whenever the dev server uses HTTPS without `server.proxy`, so headers crossing
+// the proxy must be cleaned even though the downstream instance speaks HTTP/1.1.
+const HOP_BY_HOP = new Set([
+  "connection",
+  "keep-alive",
+  "proxy-connection",
+  "te",
+  "transfer-encoding",
+  "upgrade",
+]);
+
 /**
  * Forward an HTTP request to the preview at `entry.port`, piping the response back.
  */
@@ -21,19 +34,50 @@ export function proxyHttp(
 ): void {
   const proxyReq = httpRequest(
     {
-      headers: req.headers,
+      headers: forwardableRequestHeaders(req.headers),
       host: LOOPBACK,
       method: req.method,
       path: req.url,
       port: entry.port,
     },
     (proxyRes) => {
-      res.writeHead(proxyRes.statusCode ?? 502, proxyRes.headers);
+      res.writeHead(proxyRes.statusCode ?? 502, stripHopByHop(proxyRes.headers));
       proxyRes.pipe(res);
     },
   );
   proxyReq.on("error", onError);
   req.pipe(proxyReq);
+}
+
+/**
+ * Drop hop-by-hop headers plus the HTTP/2 pseudo-headers (`:authority`, `:path`, …) that the http2
+ * compat layer leaves in `req.headers`: those `:`-prefixed names are invalid HTTP/1.1 header tokens
+ * and the downstream instance speaks HTTP/1.1.
+ */
+function forwardableRequestHeaders(headers: IncomingHttpHeaders): IncomingHttpHeaders {
+  const forwarded: IncomingHttpHeaders = {};
+  for (const [key, value] of Object.entries(headers)) {
+    if (key.startsWith(":") || HOP_BY_HOP.has(key)) {
+      continue;
+    }
+    forwarded[key] = value;
+  }
+  return forwarded;
+}
+
+/**
+ * Drop hop-by-hop headers from a downstream response before it is written to the (possibly HTTP/2)
+ * client connection.
+ */
+function stripHopByHop(headers: IncomingHttpHeaders): IncomingHttpHeaders {
+  const forwarded: IncomingHttpHeaders = {};
+  for (const [key, value] of Object.entries(headers)) {
+    if (HOP_BY_HOP.has(key)) {
+      continue;
+    }
+    forwarded[key] = value;
+  }
+  return forwarded;
 }
 
 /**

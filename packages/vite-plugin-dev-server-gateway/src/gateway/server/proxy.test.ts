@@ -1,5 +1,7 @@
-import type { Server } from "node:http";
+import type { IncomingHttpHeaders, IncomingMessage, Server, ServerResponse } from "node:http";
 import { createServer } from "node:http";
+import type { Http2Server } from "node:http2";
+import { connect as http2Connect, createServer as createHttp2Server } from "node:http2";
 
 import { afterEach, describe, expect, it } from "vite-plus/test";
 
@@ -92,5 +94,80 @@ describe("proxyHttp", () => {
     expect(res.status).toBe(502);
     await expect(res.text()).resolves.toContain("Preview 'app' is not running");
     expect(registry.get("app")).toBeUndefined();
+  });
+});
+
+// Vite serves the gateway over HTTP/2 whenever the dev server uses HTTPS. Exercised over cleartext
+// (h2c) since the forbidden-header rejection is a protocol behaviour independent of TLS.
+describe("proxyHttp over an HTTP/2 gateway", () => {
+  it("forwards both ways, stripping headers HTTP/2 forbids", async () => {
+    let receivedHeaders: IncomingHttpHeaders = {};
+    const targetPort = await listen(
+      createServer((req, res) => {
+        receivedHeaders = req.headers;
+        // The downstream HTTP/1.1 instance emits a connection-specific header; piping it verbatim
+        // into the HTTP/2 client response would otherwise be rejected.
+        res.writeHead(200, { connection: "keep-alive", "content-type": "text/plain" });
+        res.end("hello from preview");
+      }),
+    );
+
+    const gateway: Http2Server = createHttp2Server((req, res) => {
+      // The http2 compat objects expose the HTTP/1 API surface proxyHttp uses; the static types
+      // differ only in members it never touches, so the cast is safe.
+      const proxyReq = req as unknown as IncomingMessage;
+      const proxyRes = res as unknown as ServerResponse;
+      proxyHttp(entry(targetPort), proxyReq, proxyRes, () => {
+        send502(proxyRes, "app");
+      });
+    });
+    const gatewayPort = await new Promise<number>((resolve) => {
+      gateway.listen(0, "127.0.0.1", () => {
+        const address = gateway.address();
+        resolve(address !== null && typeof address !== "string" ? address.port : 0);
+      });
+    });
+
+    const client = http2Connect(`http://127.0.0.1:${gatewayPort}`);
+    try {
+      const result = await new Promise<{
+        body: string;
+        connection: string | undefined;
+        status: number;
+      }>((resolve, reject) => {
+        const req = client.request({ ":path": "/preview/app/" });
+        let status = 0;
+        let connection: string | undefined;
+        let body = "";
+        req.on("response", (headers) => {
+          status = Number(headers[":status"] ?? 0);
+          connection = headers["connection"] as string | undefined;
+        });
+        req.setEncoding("utf8");
+        req.on("data", (chunk: string) => {
+          body += chunk;
+        });
+        req.on("end", () => {
+          resolve({ body, connection, status });
+        });
+        req.on("error", reject);
+        req.end();
+      });
+
+      expect(result.status).toBe(200);
+      expect(result.body).toBe("hello from preview");
+      // The hop-by-hop `connection` header the downstream set must be stripped from the client
+      // response, not just implicitly dropped by the HTTP/2 layer rejecting it.
+      expect(result.connection).toBeUndefined();
+      // The downstream HTTP/1.1 server must not receive HTTP/2 pseudo-headers (`:authority`, …).
+      expect(Object.keys(receivedHeaders).some((key) => key.startsWith(":"))).toBe(false);
+    } finally {
+      client.close();
+      await new Promise<void>((resolve) => {
+        gateway.close(() => {
+          resolve();
+        });
+      });
+    }
   });
 });

@@ -1,5 +1,7 @@
-import type { Server } from "node:http";
+import type { IncomingMessage, Server, ServerResponse } from "node:http";
 import { createServer } from "node:http";
+import type { Http2Server } from "node:http2";
+import { connect as http2Connect, createServer as createHttp2Server } from "node:http2";
 
 import { describe, expect, test } from "vite-plus/test";
 
@@ -180,5 +182,110 @@ describe("handleControlRequest", () => {
   it("ignores non-control paths", async ({ origin }) => {
     const res = await fetch(`${origin}/something-else`);
     expect(res.status).toBe(404);
+  });
+
+  it("streams events with proxy buffering disabled so a reverse proxy forwards frames", async ({
+    origin,
+    registry,
+  }) => {
+    registry.upsert({ base: "/preview/app/", name: "app", port: 53_001 });
+
+    const controller = new AbortController();
+    const res = await fetch(`${origin}/__dev-server-gateway/events`, { signal: controller.signal });
+    try {
+      expect(res.status).toBe(200);
+      expect(res.headers.get("content-type")).toBe("text/event-stream");
+      // The header that tells an intermediary reverse proxy not to buffer the long-lived stream.
+      expect(res.headers.get("x-accel-buffering")).toBe("no");
+
+      const reader = res.body!.getReader();
+      const { value } = await reader.read();
+      const frame = new TextDecoder().decode(value);
+      expect(frame.startsWith("data: ")).toBe(true);
+      const payload = JSON.parse(frame.slice("data: ".length).trim()) as Array<{ name: string }>;
+      expect(payload.map((preview) => preview.name)).toEqual(["app"]);
+    } finally {
+      controller.abort();
+    }
+  });
+});
+
+// HTTP/2 is exercised over cleartext (h2c) — the forbidden-header rejection is a protocol-level
+// behaviour of Node's http2 compat layer, identical with or without TLS, so no certificates are
+// needed. This is the configuration Vite uses for the gateway whenever the dev server runs HTTPS.
+describe("handleControlRequest over HTTP/2", () => {
+  it("streams the events SSE without tripping the HTTP/2 forbidden-header rejection", async () => {
+    const registry = new Registry();
+    registry.upsert({ base: "/preview/app/", name: "app", port: 53_001 });
+
+    const server: Http2Server = createHttp2Server((req, res) => {
+      // The http2 compat objects expose the HTTP/1 API surface the handler uses; the static types
+      // differ only in members we never touch, so the cast is safe.
+      void handleControlRequest(
+        req as unknown as IncomingMessage,
+        res as unknown as ServerResponse,
+        {
+          getGatewayInfo: () => null,
+          mountPath: "/preview",
+          portRange: [53_000, 53_999],
+          registry,
+        },
+      );
+    });
+    const port = await new Promise<number>((resolve) => {
+      server.listen(0, "127.0.0.1", () => {
+        const address = server.address();
+        resolve(address !== null && typeof address !== "string" ? address.port : 0);
+      });
+    });
+
+    const client = http2Connect(`http://127.0.0.1:${port}`);
+    try {
+      const frame = await new Promise<{
+        accelBuffering: string | undefined;
+        connection: string | undefined;
+        data: string;
+        status: number;
+      }>((resolve, reject) => {
+        const req = client.request({ ":path": "/__dev-server-gateway/events" });
+        let status = 0;
+        let accelBuffering: string | undefined;
+        let connection: string | undefined;
+        let buffer = "";
+        req.on("response", (headers) => {
+          status = Number(headers[":status"] ?? 0);
+          accelBuffering = headers["x-accel-buffering"] as string | undefined;
+          connection = headers["connection"] as string | undefined;
+        });
+        req.setEncoding("utf8");
+        req.on("data", (chunk: string) => {
+          buffer += chunk;
+          // The SSE stream stays open; resolve on the first complete frame, then close it.
+          if (buffer.includes("\n\n")) {
+            req.close();
+            resolve({ accelBuffering, connection, data: buffer, status });
+          }
+        });
+        req.on("error", reject);
+        req.end();
+      });
+
+      expect(frame.status).toBe(200);
+      expect(frame.accelBuffering).toBe("no");
+      // HTTP/2 forbids connection-specific headers; the response must not carry one.
+      expect(frame.connection).toBeUndefined();
+      expect(frame.data.startsWith("data: ")).toBe(true);
+      const payload = JSON.parse(frame.data.slice("data: ".length).trim()) as Array<{
+        name: string;
+      }>;
+      expect(payload.map((preview) => preview.name)).toEqual(["app"]);
+    } finally {
+      client.close();
+      await new Promise<void>((resolve) => {
+        server.close(() => {
+          resolve();
+        });
+      });
+    }
   });
 });
