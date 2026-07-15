@@ -21,7 +21,7 @@
     "@types/node": "catalog:dev",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "@vitejs/devtools": "0.3.3",
+    "@vitejs/devtools": "0.4.0",
     "vite": "catalog:dev"
   }
 }
