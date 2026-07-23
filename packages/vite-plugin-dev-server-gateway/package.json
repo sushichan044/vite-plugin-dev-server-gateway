@@ -54,14 +54,14 @@
     "build": "vp pack"
   },
   "dependencies": {
-    "gunshi": "0.34.0"
+    "gunshi": "0.37.1"
   },
   "devDependencies": {
     "@arethetypeswrong/core": "catalog:dev",
     "@types/node": "catalog:dev",
     "@typescript/native-preview": "catalog:dev",
     "@virtual-live-lab/tsconfig": "catalog:dev",
-    "@vitejs/devtools-kit": "0.3.3",
+    "@vitejs/devtools-kit": "0.4.2",
     "publint": "catalog:dev",
     "typescript": "catalog:dev",
     "unplugin-unused": "catalog:dev",
