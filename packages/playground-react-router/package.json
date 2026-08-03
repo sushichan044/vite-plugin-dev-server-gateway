@@ -11,17 +11,17 @@
   "dependencies": {
     "@react-router/node": "^7.0.0",
     "isbot": "^5",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "react-router": "^7.0.0",
     "vite-plugin-dev-server-gateway": "workspace:*"
   },
   "devDependencies": {
     "@react-router/dev": "^7.0.0",
     "@types/node": "catalog:dev",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
-    "@vitejs/devtools": "0.3.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/devtools": "0.4.10",
     "vite": "catalog:dev"
   }
 }
