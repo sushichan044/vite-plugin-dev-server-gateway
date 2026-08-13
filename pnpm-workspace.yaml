@@ -6,15 +6,15 @@ allowBuilds:
 
 catalogs:
   dev:
-    "@arethetypeswrong/core": 0.18.3
+    "@arethetypeswrong/core": 0.18.5
     "@types/node": 25.9.1
     "@typescript/native-preview": 7.0.0-dev.20260526.1
     "@virtual-live-lab/tsconfig": 2.1.23
-    pkg-pr-new: 0.0.75
-    publint: 0.3.21
+    pkg-pr-new: 0.0.87
+    publint: 0.3.23
     typescript: 6.0.3
-    unplugin-unused: 0.5.7
-    vite: 8.0.16
-    vite-plus: 0.1.24
+    unplugin-unused: 0.6.0
+    vite: 8.2.1
+    vite-plus: 0.2.8
 
 saveExact: true
