@@ -5,9 +5,7 @@ import { createServer } from "node:net";
 import { fileURLToPath } from "node:url";
 
 const PLAYGROUND_DIR = fileURLToPath(new URL("../../playground-spa", import.meta.url));
-const VITE_BIN = fileURLToPath(
-  new URL("../../playground-spa/node_modules/.bin/vite", import.meta.url),
-);
+const VITE_BIN = fileURLToPath(new URL("../node_modules/.bin/vite", import.meta.url));
 
 const PORT_RANGE: [number, number] = [53_000, 53_999];
 
