@@ -15,9 +15,9 @@ describe("formatShellEnv", () => {
     powershell: "ps1",
   } as const satisfies Record<Shell, string>;
 
-  it.each(SHELLS)("renders env assignments for %s", (shell) => {
+  it.each(SHELLS)("renders env assignments for %s", async (shell) => {
     const result = formatShellEnv(shell, pairs);
-    expect(result).toMatchFileSnapshot(`./__snapshots__/env.snap.${exts[shell]}`);
+    await expect(result).toMatchFileSnapshot(`./__snapshots__/env.snap.${exts[shell]}`);
   });
 
   it("escapes single quotes for the POSIX shells", () => {
