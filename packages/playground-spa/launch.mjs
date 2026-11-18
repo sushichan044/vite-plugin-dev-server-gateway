@@ -20,7 +20,7 @@ console.log(
   `[dev-server-gateway] launching "${resolved.name}" on port ${resolved.port} at ${resolved.base}/`,
 );
 
-const child = spawn("pnpm", ["exec", "vite"], { env, stdio: "inherit" });
+const child = spawn("pnpm", ["exec", "vp", "dev"], { env, stdio: "inherit" });
 child.on("exit", (code) => {
   process.exit(code ?? 0);
 });

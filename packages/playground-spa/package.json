@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "dev:gateway": "vite",
+    "dev": "vp dev",
+    "dev:gateway": "vp dev",
     "dev:instance": "node launch.mjs"
   },
   "dependencies": {

@@ -5,7 +5,7 @@ import { createServer } from "node:net";
 import { fileURLToPath } from "node:url";
 
 const PLAYGROUND_DIR = fileURLToPath(new URL("../../playground-spa", import.meta.url));
-const VITE_BIN = fileURLToPath(new URL("../node_modules/.bin/vite", import.meta.url));
+const VP_BIN = fileURLToPath(new URL("../node_modules/.bin/vp", import.meta.url));
 
 const PORT_RANGE: [number, number] = [53_000, 53_999];
 
@@ -100,11 +100,16 @@ function baseEnv(): NodeJS.ProcessEnv {
 
 export async function startGateway(): Promise<ServerHandle> {
   const port = await freeEphemeralPort();
-  const child = spawn(VITE_BIN, ["--host", "127.0.0.1", "--port", String(port), "--strictPort"], {
-    cwd: PLAYGROUND_DIR,
-    env: baseEnv(),
-    stdio: "ignore",
-  });
+  const child = spawn(
+    VP_BIN,
+    ["dev", "--host", "127.0.0.1", "--port", String(port), "--strictPort"],
+    {
+      cwd: PLAYGROUND_DIR,
+      detached: true,
+      env: baseEnv(),
+      stdio: "ignore",
+    },
+  );
   const origin = `http://127.0.0.1:${port}`;
   await waitForHttp(`${origin}/__dev-server-gateway/health`);
   return { child, origin, port };
@@ -123,8 +128,9 @@ export async function startInstance(
     VITE_DEV_SERVER_GATEWAY_PORT: String(port),
     VITE_DEV_SERVER_GATEWAY_NAME: name,
   };
-  const child = spawn(VITE_BIN, ["--host", "127.0.0.1"], {
+  const child = spawn(VP_BIN, ["dev", "--host", "127.0.0.1"], {
     cwd: PLAYGROUND_DIR,
+    detached: true,
     env,
     stdio: "ignore",
   });
@@ -133,6 +139,14 @@ export async function startInstance(
   return { child, name, origin, port };
 }
 
+// `vp dev` runs the Vite server in a child process, so signal the whole process group
+// (each server is spawned detached as its own group leader) rather than only `vp`.
 export function stop(handle: ServerHandle | undefined, signal: NodeJS.Signals = "SIGTERM"): void {
-  handle?.child.kill(signal);
+  const pid = handle?.child.pid;
+  if (pid === undefined || handle?.child.exitCode !== null) return;
+  try {
+    process.kill(-pid, signal);
+  } catch {
+    handle.child.kill(signal);
+  }
 }
